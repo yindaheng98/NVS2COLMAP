@@ -1,4 +1,4 @@
-"""Extract Neural 3D Video camera videos into frame input folders."""
+"""Extract Neural 3D Video camera videos into frame image folders."""
 
 from pathlib import Path
 
@@ -35,7 +35,7 @@ def extract_videos(
         video_path = folder / f"{camera.name}{video_extension}"
         if not video_path.is_file():
             raise FileNotFoundError(f"Missing camera video: {video_path}")
-        camera_output_pattern = output_pattern / "input" / f"{camera.name}{image_extension}"
+        camera_output_pattern = output_pattern / f"{camera.name}{image_extension}"
         camera_n_frames = extract_video_frames(
             video_path=video_path,
             output_pattern=str(camera_output_pattern),

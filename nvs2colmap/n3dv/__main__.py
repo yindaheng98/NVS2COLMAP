@@ -55,7 +55,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--skip-video-extraction",
         action="store_true",
-        help="Only convert poses_bounds.npy into COLMAP text files for existing frame*/input folders.",
+        help="Only convert poses_bounds.npy for existing frame folders.",
     )
     parser.add_argument(
         "--colmap-mode",
@@ -86,10 +86,12 @@ def main() -> None:
     cameras = read_poses_bounds(folder, args.video_extension)
 
     n_frames = args.n_frames
+    frame_output_pattern = folder / "frame%d"
+    image_dir_name = "images" if args.colmap_mode == "text" else "input"
     if not args.skip_video_extraction:
         n_frames = extract_videos(
             folder=folder,
-            output_pattern=folder / "frame%d",
+            output_pattern=frame_output_pattern / image_dir_name,
             cameras=cameras,
             n_frames=n_frames,
             ffmpeg_executable=args.ffmpeg_executable,
@@ -98,18 +100,18 @@ def main() -> None:
             image_extension=args.image_extension,
         )
     elif n_frames is None:
-        n_frames = count_frame_dirs(folder / "frame%d")
+        n_frames = count_frame_dirs(frame_output_pattern)
 
     if args.colmap_mode == "text":
         write_video_colmap_text_model(
-            output_pattern=folder / "frame%d" / "sparse" / "0",
+            output_pattern=frame_output_pattern / "sparse" / "0",
             cameras=cameras,
             n_frames=n_frames,
             image_extension=args.image_extension,
         )
     else:
         run_video_colmap(
-            output_pattern=folder / "frame%d",
+            output_pattern=frame_output_pattern,
             cameras=cameras,
             n_frames=n_frames,
             image_extension=args.image_extension,
