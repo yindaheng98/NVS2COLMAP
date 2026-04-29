@@ -7,7 +7,7 @@ from pathlib import Path
 
 from nvs2colmap.colmap import write_video_colmap_text_model
 
-from .extract_videos import count_frame_dirs, extract_videos
+from .extract_videos import count_frame_dirs, extract_videos, list_camera_videos
 from .poses_bounds import read_poses_bounds
 
 
@@ -47,6 +47,11 @@ def parse_args() -> argparse.Namespace:
         help="Image extension written by ffmpeg and referenced by COLMAP text files.",
     )
     parser.add_argument(
+        "--video-extension",
+        default=".mp4",
+        help="Video extension used to discover camera videos.",
+    )
+    parser.add_argument(
         "--skip-video-extraction",
         action="store_true",
         help="Only convert poses_bounds.npy into COLMAP text files for existing frame*/input folders.",
@@ -62,14 +67,15 @@ def main() -> None:
     if not poses_bounds_path.is_file():
         raise FileNotFoundError(f"Missing {poses_bounds_path}")
 
+    camera_videos = list_camera_videos(dataset_path, args.video_extension)
     cameras = read_poses_bounds(poses_bounds_path)
 
     n_frames = args.n_frames
     if not args.skip_video_extraction:
         n_frames = extract_videos(
-            dataset_path=dataset_path,
             output_pattern=dataset_path / "frame%d",
             cameras=cameras,
+            camera_videos=camera_videos,
             n_frames=n_frames,
             ffmpeg_executable=args.ffmpeg_executable,
             ffprobe_executable=args.ffprobe_executable,

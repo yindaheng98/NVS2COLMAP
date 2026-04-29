@@ -17,37 +17,34 @@ def count_frame_dirs(output_pattern: Path, start_number: int = 1) -> int:
     return n_frames
 
 
-def find_camera_video(dataset_path: Path, camera: CameraModel) -> Path:
-    video_path = dataset_path / f"{camera.name}.mp4"
-    if video_path.is_file():
-        return video_path
-
-    matches = [
+def list_camera_videos(dataset_path: Path, video_extension: str = ".mp4") -> list[Path]:
+    if not video_extension.startswith("."):
+        video_extension = f".{video_extension}"
+    video_extension = video_extension.lower()
+    videos = [
         path
         for path in dataset_path.iterdir()
-        if path.is_file()
-        and path.stem == camera.name
-        and path.suffix.lower() == ".mp4"
+        if path.is_file() and path.suffix.lower() == video_extension
     ]
-    if len(matches) == 1:
-        return matches[0]
-    if len(matches) > 1:
-        raise FileExistsError(f"Multiple camera videos match {camera.name}.mp4: {matches}")
-    raise FileNotFoundError(f"Missing camera video: {video_path}")
+    if not videos:
+        raise FileNotFoundError(f"No {video_extension} camera videos found in {dataset_path}")
+    return sorted(videos)
 
 
 def extract_videos(
-    dataset_path: Path,
     output_pattern: Path,
     cameras: list[CameraModel],
+    camera_videos: list[Path],
     n_frames: int | None,
     ffmpeg_executable: str = "ffmpeg",
     ffprobe_executable: str = "ffprobe",
     image_extension: str = ".png",
 ) -> int:
+    if len(camera_videos) != len(cameras):
+        raise ValueError(f"Expected {len(cameras)} camera videos, got {len(camera_videos)}.")
+
     extracted_n_frames = 0
-    for camera in cameras:
-        video_path = find_camera_video(dataset_path, camera)
+    for camera, video_path in zip(cameras, camera_videos):
         camera_output_pattern = output_pattern / "input" / f"{camera.name}{image_extension}"
         camera_n_frames = extract_video_frames(
             video_path=video_path,
