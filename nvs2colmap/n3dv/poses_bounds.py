@@ -2,14 +2,16 @@
 
 import numpy as np
 import torch
+from pathlib import Path
 
 from nvs2colmap.colmap import CameraModel
 from nvs2colmap.utils.rotation import matrix_to_quaternion
 
 
-def read_camera_meta_n3dv(path):
+def read_camera_meta_n3dv(folder):
+    folder = Path(folder)
     # Inverse of: https://github.com/Fyusion/LLFF/blob/master/llff/poses/pose_utils.py#L11
-    poses_arr = torch.tensor(np.load(path))
+    poses_arr = torch.tensor(np.load(folder / "poses_bounds.npy"))
     poses = poses_arr[:, :-2].reshape(-1, 3, 5)
     bds = poses_arr[:, -2:]
     hwf = poses[:, :, 4]
@@ -26,12 +28,30 @@ def read_camera_meta_n3dv(path):
     return poses.shape[0], Rs, Ts, hwf, bds
 
 
-def read_poses_bounds(path) -> list[CameraModel]:
-    camera_meta = read_camera_meta_n3dv(path)
+def list_camera_videos(folder: Path, video_extension: str = ".mp4") -> list[Path]:
+    if not video_extension.startswith("."):
+        video_extension = f".{video_extension}"
+    video_extension = video_extension.lower()
+    videos = [
+        path
+        for path in folder.iterdir()
+        if path.is_file() and path.suffix.lower() == video_extension
+    ]
+    if not videos:
+        raise FileNotFoundError(f"No {video_extension} camera videos found in {folder}")
+    return sorted(videos)
+
+
+def read_poses_bounds(folder, video_extension: str = ".mp4") -> list[CameraModel]:
+    folder = Path(folder)
+    camera_meta = read_camera_meta_n3dv(folder)
     n_cameras, Rs, Ts, hwf, bds = camera_meta
+    camera_videos = list_camera_videos(folder, video_extension)
+    if len(camera_videos) != n_cameras:
+        raise ValueError(f"Expected {n_cameras} camera videos, got {len(camera_videos)}.")
+
     cameras = []
     for i in range(n_cameras):
-        img_name = "cam%02d" % i
         height, width = hwf[i, 0], hwf[i, 1]
         fx = fy = hwf[i, 2]
         cx, cy = width / 2, height / 2
@@ -39,7 +59,7 @@ def read_poses_bounds(path) -> list[CameraModel]:
         q, t = matrix_to_quaternion(R), T
         cameras.append(
             CameraModel(
-                name=img_name,
+                name=camera_videos[i].stem,
                 width=int(round(float(width))),
                 height=int(round(float(height))),
                 fx=float(fx),

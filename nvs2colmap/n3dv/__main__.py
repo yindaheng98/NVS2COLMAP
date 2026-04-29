@@ -7,7 +7,7 @@ from pathlib import Path
 
 from nvs2colmap.colmap import write_video_colmap_text_model
 
-from .extract_videos import count_frame_dirs, extract_videos, list_camera_videos
+from .extract_videos import count_frame_dirs, extract_videos
 from .poses_bounds import read_poses_bounds
 
 
@@ -61,37 +61,33 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    dataset_path = args.path.resolve()
+    folder = args.path.resolve()
 
-    poses_bounds_path = dataset_path / "poses_bounds.npy"
-    if not poses_bounds_path.is_file():
-        raise FileNotFoundError(f"Missing {poses_bounds_path}")
-
-    camera_videos = list_camera_videos(dataset_path, args.video_extension)
-    cameras = read_poses_bounds(poses_bounds_path)
+    cameras = read_poses_bounds(folder, args.video_extension)
 
     n_frames = args.n_frames
     if not args.skip_video_extraction:
         n_frames = extract_videos(
-            output_pattern=dataset_path / "frame%d",
+            folder=folder,
+            output_pattern=folder / "frame%d",
             cameras=cameras,
-            camera_videos=camera_videos,
             n_frames=n_frames,
             ffmpeg_executable=args.ffmpeg_executable,
             ffprobe_executable=args.ffprobe_executable,
+            video_extension=args.video_extension,
             image_extension=args.image_extension,
         )
     elif n_frames is None:
-        n_frames = count_frame_dirs(dataset_path / "frame%d")
+        n_frames = count_frame_dirs(folder / "frame%d")
 
     write_video_colmap_text_model(
-        output_pattern=dataset_path / "frame%d" / "sparse" / "0",
+        output_pattern=folder / "frame%d" / "sparse" / "0",
         cameras=cameras,
         n_frames=n_frames,
         image_extension=args.image_extension,
     )
 
-    print(f"Done: {dataset_path}")
+    print(f"Done: {folder}")
 
 
 if __name__ == "__main__":
