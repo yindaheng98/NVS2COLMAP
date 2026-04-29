@@ -41,7 +41,6 @@ def run_colmap(
     use_gpu: str = "1",
 ) -> None:
     folder = Path(folder)
-    colmap_executable = os.path.abspath(colmap_executable)
     colmap_cameras, colmap_images = build_colmap_records(cameras, image_extension)
 
     if feature_extractor(str(folder), use_gpu=use_gpu, colmap_executable=colmap_executable) != 0:

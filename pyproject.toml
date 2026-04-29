@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nvs2colmap"
-version = "0.2.0"
+version = "0.2.1"
 description = "Utilities for converting novel view synthesis datasets to COLMAP format."
 readme = "README.md"
 authors = [{ name = "Howard Yin", email = "yindaheng98@gmail.com" }]
