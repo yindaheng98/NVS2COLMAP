@@ -4,7 +4,14 @@ import os
 import subprocess
 
 
-def get_video_frame_count(video_path, ffprobe_executable: str = "ffprobe") -> int:
+def count_video_frames(
+    video_path,
+    start_number: int = 1,
+    n_frames: int | None = None,
+    ffprobe_executable: str = "ffprobe",
+) -> int:
+    assert start_number >= 1, f"start_number must be >= 1, got {start_number}."
+
     cmd = [
         ffprobe_executable,
         "-v",
@@ -19,7 +26,15 @@ def get_video_frame_count(video_path, ffprobe_executable: str = "ffprobe") -> in
         str(video_path),
     ]
     output = subprocess.check_output(cmd, text=True).strip()
-    return int(output)
+    video_frame_count = int(output)
+    available_frame_count = video_frame_count - start_number + 1
+    assert available_frame_count > 0, f"start_number {start_number} is outside {video_frame_count} frames in {video_path}."
+
+    if n_frames is None:
+        return available_frame_count
+
+    assert n_frames >= 1, f"n_frames must be >= 1, got {n_frames}."
+    return min(n_frames, available_frame_count)
 
 
 def extract_video_frames(
@@ -27,17 +42,12 @@ def extract_video_frames(
     start_number: int = 1, n_frames: int | None = None,
     ffmpeg_executable: str = "ffmpeg", ffprobe_executable: str = "ffprobe",
 ) -> int:
-    assert start_number >= 1, f"start_number must be >= 1, got {start_number}."
-
-    video_frame_count = get_video_frame_count(video_path, ffprobe_executable)
-    available_frame_count = video_frame_count - start_number + 1
-    assert available_frame_count > 0, f"start_number {start_number} is outside {video_frame_count} frames in {video_path}."
-
-    if n_frames is None:
-        frame_count = available_frame_count
-    else:
-        assert n_frames >= 1, f"n_frames must be >= 1, got {n_frames}."
-        frame_count = min(n_frames, available_frame_count)
+    frame_count = count_video_frames(
+        video_path,
+        start_number=start_number,
+        n_frames=n_frames,
+        ffprobe_executable=ffprobe_executable,
+    )
 
     for frame in range(start_number, start_number + frame_count):
         os.makedirs(os.path.dirname(output_pattern % frame), exist_ok=True)
