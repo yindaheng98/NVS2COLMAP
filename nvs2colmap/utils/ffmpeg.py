@@ -1,5 +1,6 @@
 """ffmpeg helpers."""
 
+from concurrent.futures import ProcessPoolExecutor
 import os
 import subprocess
 
@@ -68,3 +69,40 @@ def extract_video_frames(
     print(" ".join(str(part) for part in cmd))
     subprocess.run(cmd, check=True)
     return frame_count
+
+
+def extract_video_frames_task(args) -> int:
+    return extract_video_frames(*args)
+
+
+def extract_video_frames_parallel(
+    jobs,
+    start_number: int = 1,
+    n_frames: int | None = None,
+    ffmpeg_executable: str = "ffmpeg",
+    ffprobe_executable: str = "ffprobe",
+    process_count: int = 1,
+) -> list[int]:
+    """Extract frames from multiple videos using multiple ffmpeg processes."""
+    assert process_count >= 1, f"process_count must be >= 1, got {process_count}."
+
+    tasks = [
+        (
+            video_path,
+            output_pattern,
+            start_number,
+            n_frames,
+            ffmpeg_executable,
+            ffprobe_executable,
+        )
+        for video_path, output_pattern in jobs
+    ]
+    if process_count == 1:
+        return [extract_video_frames_task(task) for task in tasks]
+
+    if not tasks:
+        return []
+
+    max_workers = min(process_count, len(tasks))
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        return list(executor.map(extract_video_frames_task, tasks))

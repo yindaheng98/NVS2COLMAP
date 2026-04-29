@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from nvs2colmap.write_model import CameraModel
-from nvs2colmap.utils import extract_video_frames
+from nvs2colmap.utils import extract_video_frames_parallel
 
 
 def count_frame_dirs(output_pattern: Path, start_number: int = 1) -> int:
@@ -25,27 +25,29 @@ def extract_videos(
     n_frames: int | None = None,
     ffmpeg_executable: str = "ffmpeg",
     ffprobe_executable: str = "ffprobe",
+    ffmpeg_processes: int = 1,
     video_extension: str = ".mp4",
     image_extension: str = ".png",
 ) -> int:
     if not video_extension.startswith("."):
         video_extension = f".{video_extension}"
 
-    extracted_n_frames = 0
+    jobs = []
     for camera in cameras:
         video_path = folder / f"{camera.name}{video_extension}"
         if not video_path.is_file():
             raise FileNotFoundError(f"Missing camera video: {video_path}")
         camera_output_pattern = output_pattern / f"{camera.name}{image_extension}"
-        camera_n_frames = extract_video_frames(
-            video_path=video_path,
-            output_pattern=str(camera_output_pattern),
-            start_number=start_number,
-            n_frames=n_frames,
-            ffmpeg_executable=ffmpeg_executable,
-            ffprobe_executable=ffprobe_executable,
-        )
-        extracted_n_frames = max(extracted_n_frames, camera_n_frames)
-    if extracted_n_frames == 0:
+        jobs.append((video_path, str(camera_output_pattern)))
+    if not jobs:
         raise ValueError("No cameras to extract.")
-    return extracted_n_frames
+
+    extracted_frame_counts = extract_video_frames_parallel(
+        jobs,
+        start_number=start_number,
+        n_frames=n_frames,
+        ffmpeg_executable=ffmpeg_executable,
+        ffprobe_executable=ffprobe_executable,
+        process_count=ffmpeg_processes,
+    )
+    return max(extracted_frame_counts)

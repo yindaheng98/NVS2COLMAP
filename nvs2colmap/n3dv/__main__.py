@@ -49,6 +49,12 @@ def parse_args() -> argparse.Namespace:
         help="ffprobe executable.",
     )
     parser.add_argument(
+        "--ffmpeg-processes",
+        type=int,
+        default=1,
+        help="Number of ffmpeg processes to run in parallel while extracting videos.",
+    )
+    parser.add_argument(
         "--image-extension",
         default=".png",
         help="Image extension written by ffmpeg and referenced by COLMAP text files.",
@@ -103,6 +109,7 @@ def main() -> None:
             n_frames=n_frames,
             ffmpeg_executable=args.ffmpeg_executable,
             ffprobe_executable=args.ffprobe_executable,
+            ffmpeg_processes=args.ffmpeg_processes,
             video_extension=args.video_extension,
             image_extension=args.image_extension,
         )

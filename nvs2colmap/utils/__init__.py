@@ -11,7 +11,7 @@ from .colmap import (
     point_triangulator,
     read_db,
 )
-from .ffmpeg import count_video_frames, extract_video_frames
+from .ffmpeg import count_video_frames, extract_video_frames, extract_video_frames_parallel
 from .rotation import matrix_to_quaternion, standardize_quaternion
 
 __all__ = [
@@ -19,6 +19,7 @@ __all__ = [
     "execute",
     "exhaustive_matcher",
     "extract_video_frames",
+    "extract_video_frames_parallel",
     "feature_extractor",
     "image_undistorter",
     "mapper",
