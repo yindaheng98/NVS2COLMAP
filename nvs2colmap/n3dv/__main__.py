@@ -31,6 +31,12 @@ def parse_args() -> argparse.Namespace:
         help="Number of frames to extract and write. Defaults to the video frame count when extracting.",
     )
     parser.add_argument(
+        "--start-number",
+        type=int,
+        default=1,
+        help="1-based source frame to start extracting from; output frame folders and image files use the same starting number.",
+    )
+    parser.add_argument(
         "--ffmpeg",
         dest="ffmpeg_executable",
         default="ffmpeg",
@@ -93,6 +99,7 @@ def main() -> None:
             folder=folder,
             output_pattern=frame_output_pattern / image_dir_name,
             cameras=cameras,
+            start_number=args.start_number,
             n_frames=n_frames,
             ffmpeg_executable=args.ffmpeg_executable,
             ffprobe_executable=args.ffprobe_executable,
@@ -100,13 +107,14 @@ def main() -> None:
             image_extension=args.image_extension,
         )
     elif n_frames is None:
-        n_frames = count_frame_dirs(frame_output_pattern)
+        n_frames = count_frame_dirs(frame_output_pattern, start_number=args.start_number)
 
     if not args.use_colmap:
         write_video_colmap_text_model(
             output_pattern=frame_output_pattern / "sparse" / "0",
             cameras=cameras,
             n_frames=n_frames,
+            start_number=args.start_number,
             image_extension=args.image_extension,
         )
     else:
@@ -114,6 +122,7 @@ def main() -> None:
             output_pattern=frame_output_pattern,
             cameras=cameras,
             n_frames=n_frames,
+            start_number=args.start_number,
             image_extension=args.image_extension,
             colmap_executable=args.colmap_executable,
             use_gpu=args.colmap_use_gpu,

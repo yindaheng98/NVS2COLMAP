@@ -54,6 +54,9 @@ coffee_martini/
 Videos are read by suffix, default `.mp4`, and sorted by filename. The sorted
 videos are matched against `poses_bounds.npy` rows in that order. Output image
 names and COLMAP image names use the corresponding video filename stems.
+By default, extraction starts from source frame `1`, producing `frame1`,
+`frame2`, ... . Passing `--start-number N` starts decoding from source video
+frame `N` and also numbers output folders and image files from `N`.
 
 ## Output Format
 
@@ -128,6 +131,17 @@ python -m nvs2colmap.n3dv \
   --n-frames 300
 ```
 
+Start decoding from source frame 10:
+
+```bash
+python -m nvs2colmap.n3dv \
+  --path data/cook_spinach \
+  --ffmpeg ffmpeg \
+  --ffprobe ffprobe \
+  --start-number 10 \
+  --n-frames 300
+```
+
 Decode uppercase `.MP4` videos:
 
 ```bash
@@ -169,6 +183,9 @@ python -m nvs2colmap.n3dv \
   best results, use videos with matching frame counts or pass `--n-frames`.
   If omitted with `--skip-video-extraction`, frame directories are counted
   from `frame%d`.
+- `--start-number`: 1-based source frame index to start decoding from, default
+  `1`. Output `frame%d` folders and written image filenames use the same
+  numbering start.
 - `--ffmpeg`: path to the `ffmpeg` executable.
 - `--ffprobe`: path to the `ffprobe` executable.
 - `--image-extension`: image extension written by ffmpeg and referenced by

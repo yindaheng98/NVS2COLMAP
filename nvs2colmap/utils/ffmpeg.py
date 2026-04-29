@@ -59,6 +59,8 @@ def extract_video_frames(
         "error",
         "-i",
         str(video_path),
+        "-vf",
+        f"trim=start_frame={start_number - 1}",
         "-frames:v", str(frame_count),
         "-start_number", str(start_number),
         str(output_pattern), "-y",

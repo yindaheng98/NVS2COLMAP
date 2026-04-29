@@ -21,6 +21,7 @@ def extract_videos(
     folder: Path,
     output_pattern: Path,
     cameras: list[CameraModel],
+    start_number: int = 1,
     n_frames: int | None = None,
     ffmpeg_executable: str = "ffmpeg",
     ffprobe_executable: str = "ffprobe",
@@ -39,6 +40,7 @@ def extract_videos(
         camera_n_frames = extract_video_frames(
             video_path=video_path,
             output_pattern=str(camera_output_pattern),
+            start_number=start_number,
             n_frames=n_frames,
             ffmpeg_executable=ffmpeg_executable,
             ffprobe_executable=ffprobe_executable,

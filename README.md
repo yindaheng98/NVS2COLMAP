@@ -44,6 +44,17 @@ python -m nvs2colmap.n3dv \
   --n-frames 300
 ```
 
+Start from source frame 10 and keep output frame numbering aligned with it:
+
+```bash
+python -m nvs2colmap.n3dv \
+  --path data/coffee_martini \
+  --ffmpeg ffmpeg \
+  --ffprobe ffprobe \
+  --start-number 10 \
+  --n-frames 300
+```
+
 Run the full COLMAP pipeline for each frame:
 
 ```bash
@@ -61,4 +72,6 @@ python -m nvs2colmap.n3dv \
 By default, decoded frames are written to `frame*/images`, and the command also
 writes `frame*/sparse/0` text models. With `--use-colmap`, decoded frames are
 written to `frame*/input`, and each frame additionally gets the standard
-COLMAP outputs such as `distorted/`, `images/`, `sparse/`, and `stereo/`.
+COLMAP outputs such as `distorted/`, `images/`, `sparse/`, and `stereo/`. When
+`--start-number N` is provided, decoding starts from source video frame `N`, and
+the generated folders/images are also numbered from `N`.
