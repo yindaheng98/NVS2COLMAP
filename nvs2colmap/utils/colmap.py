@@ -11,24 +11,24 @@ def execute(cmd):
     return proc.returncode
 
 
-def feature_extractor(args, folder):
+def feature_extractor(folder, use_gpu="1", colmap_executable="colmap"):
     os.makedirs(os.path.join(folder, "distorted"), exist_ok=True)
     cmd = [
-        args.colmap_executable, "feature_extractor",
+        colmap_executable, "feature_extractor",
         "--database_path", os.path.join(folder, "distorted", "database.db"),
         "--image_path", os.path.join(folder, "input"),
         "--ImageReader.camera_model", "PINHOLE",
-        "--SiftExtraction.use_gpu", args.use_gpu,
+        "--SiftExtraction.use_gpu", use_gpu,
         "--ImageReader.single_camera_per_image", "1",
     ]
     return execute(cmd)
 
 
-def exhaustive_matcher(args, folder):
+def exhaustive_matcher(folder, use_gpu="1", colmap_executable="colmap"):
     cmd = [
-        args.colmap_executable, "exhaustive_matcher",
+        colmap_executable, "exhaustive_matcher",
         "--database_path", os.path.join(folder, "distorted", "database.db"),
-        "--SiftMatching.use_gpu", args.use_gpu,
+        "--SiftMatching.use_gpu", use_gpu,
     ]
     return execute(cmd)
 
@@ -45,9 +45,9 @@ def read_db(folder):
     return camera_ids, image_ids
 
 
-def point_triangulator(args, folder, mapper_input_path):
+def point_triangulator(folder, mapper_input_path, colmap_executable="colmap"):
     cmd = [
-        args.colmap_executable, "point_triangulator",
+        colmap_executable, "point_triangulator",
         "--database_path", os.path.join(folder, "distorted", "database.db"),
         "--input_path", mapper_input_path,
         "--output_path", mapper_input_path,
@@ -56,10 +56,10 @@ def point_triangulator(args, folder, mapper_input_path):
     return execute(cmd)
 
 
-def mapper(args, folder, mapper_input_path):
+def mapper(folder, mapper_input_path, colmap_executable="colmap"):
     os.makedirs(os.path.join(folder, "distorted", "sparse", "0"), exist_ok=True)
     cmd = [
-        args.colmap_executable, "mapper",
+        colmap_executable, "mapper",
         "--database_path", os.path.join(folder, "distorted", "database.db"),
         "--image_path", os.path.join(folder, "input"),
         "--Mapper.ba_global_function_tolerance=0.000001",
@@ -69,7 +69,7 @@ def mapper(args, folder, mapper_input_path):
     return execute(cmd)
 
 
-def model_converter_txt(folder, colmap_executable):
+def model_converter_txt(folder, colmap_executable="colmap"):
     mapper_output_path = os.path.join(folder, "distorted", "sparse", "0")
     os.makedirs(mapper_output_path, exist_ok=True)
     cmd = [
@@ -81,7 +81,7 @@ def model_converter_txt(folder, colmap_executable):
     return execute(cmd)
 
 
-def model_converter_bin(folder, colmap_executable):
+def model_converter_bin(folder, colmap_executable="colmap"):
     mapper_output_path = os.path.join(folder, "distorted", "sparse", "0")
     os.makedirs(mapper_output_path, exist_ok=True)
     cmd = [
@@ -93,9 +93,9 @@ def model_converter_bin(folder, colmap_executable):
     return execute(cmd)
 
 
-def image_undistorter(args, folder):
+def image_undistorter(folder, colmap_executable="colmap"):
     cmd = [
-        args.colmap_executable, "image_undistorter",
+        colmap_executable, "image_undistorter",
         "--image_path", os.path.join(folder, "input"),
         "--input_path", os.path.join(folder, "distorted", "sparse", "0"),
         "--output_path", folder,
