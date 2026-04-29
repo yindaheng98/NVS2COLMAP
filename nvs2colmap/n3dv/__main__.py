@@ -58,23 +58,23 @@ def parse_args() -> argparse.Namespace:
         help="Only convert poses_bounds.npy for existing frame folders.",
     )
     parser.add_argument(
-        "--colmap-mode",
-        choices=("text", "colmap"),
-        default="text",
+        "--use-colmap",
+        action="store_true",
         help=(
-            "COLMAP output mode. 'text' only writes sparse/0 text models; "
-            "'colmap' runs COLMAP feature extraction, matching, triangulation, mapping, and undistortion."
+            "Run COLMAP feature extraction, matching, triangulation, mapping, "
+            "and undistortion instead of only writing sparse/0 text models."
         ),
     )
     parser.add_argument(
         "--colmap-executable",
         default="colmap",
-        help="COLMAP executable used when --colmap-mode colmap.",
+        help="COLMAP executable used when --use-colmap is set.",
     )
     parser.add_argument(
-        "--use-gpu",
+        "--colmap-use-gpu",
+        dest="colmap_use_gpu",
         default="1",
-        help="Whether COLMAP SIFT extraction/matching should use GPU, used when --colmap-mode colmap.",
+        help="Whether COLMAP SIFT extraction/matching should use GPU when --use-colmap is set.",
     )
     return parser.parse_args()
 
@@ -87,7 +87,7 @@ def main() -> None:
 
     n_frames = args.n_frames
     frame_output_pattern = folder / "frame%d"
-    image_dir_name = "images" if args.colmap_mode == "text" else "input"
+    image_dir_name = "input" if args.use_colmap else "images"
     if not args.skip_video_extraction:
         n_frames = extract_videos(
             folder=folder,
@@ -102,7 +102,7 @@ def main() -> None:
     elif n_frames is None:
         n_frames = count_frame_dirs(frame_output_pattern)
 
-    if args.colmap_mode == "text":
+    if not args.use_colmap:
         write_video_colmap_text_model(
             output_pattern=frame_output_pattern / "sparse" / "0",
             cameras=cameras,
@@ -116,7 +116,7 @@ def main() -> None:
             n_frames=n_frames,
             image_extension=args.image_extension,
             colmap_executable=args.colmap_executable,
-            use_gpu=args.use_gpu,
+            use_gpu=args.colmap_use_gpu,
         )
 
     print(f"Done: {folder}")

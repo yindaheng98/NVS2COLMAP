@@ -1,7 +1,8 @@
 # Neural 3D Video Dataset
 
 This package converts scenes in the **Neural 3D Video Dataset** format into
-per-frame COLMAP text models.
+per-frame COLMAP outputs. By default it writes COLMAP text models. With
+`--use-colmap`, it runs the full COLMAP pipeline on every extracted frame.
 
 Runtime dependencies:
 
@@ -42,28 +43,60 @@ names and COLMAP image names use the corresponding video filename stems.
 
 ## Output Format
 
-For each time step, the tool writes one frame directory:
+In the default mode, the command decodes one image per camera into
+`frame*/images`:
 
 ```text
 coffee_martini/
   frame1/
-    input/
+    images/
       cam00.png
       cam01.png
       ...
+  frame2/
+    images/
+  ...
+```
+
+In the default mode, it also writes one COLMAP text model per frame:
+
+```text
+coffee_martini/
+  frame1/
     sparse/0/
       cameras.txt
       images.txt
       points3D.txt
   frame2/
-    input/
     sparse/0/
   ...
 ```
 
-The generated COLMAP model uses `PINHOLE` cameras. Every camera has its own
-COLMAP camera ID because Neural 3D Video scenes are multi-view captures with
-known static camera poses.
+With `--use-colmap`, each frame directory instead contains the usual COLMAP
+workspace outputs after feature extraction, matching, triangulation, mapping,
+and undistortion:
+
+```text
+coffee_martini/
+  frame1/
+    input/
+    distorted/
+      database.db
+      sparse/0/
+        cameras.bin
+        images.bin
+        points3D.bin
+    images/
+    sparse/
+      cameras.bin
+      images.bin
+      points3D.bin
+    stereo/
+```
+
+All generated camera models use `PINHOLE`. Every camera gets its own COLMAP
+camera ID because Neural 3D Video scenes are multi-view captures with known
+static poses and per-view intrinsics.
 
 If the source videos are named `0001.MP4`, `0002.MP4`, etc., the images and
 COLMAP records are named `0001.png`, `0002.png`, etc. Use `--video-extension
@@ -92,7 +125,21 @@ python -m nvs2colmap.n3dv \
   --n-frames 1
 ```
 
-Only regenerate camera files after frames already exist:
+Run the full COLMAP pipeline instead of only writing text models:
+
+```bash
+python -m nvs2colmap.n3dv \
+  --path data/Robo360/xarm6_gold_rope_in_basket_2 \
+  --ffmpeg D:/MyPrograms/ffmpeg.exe \
+  --ffprobe D:/MyPrograms/ffprobe.exe \
+  --video-extension MP4 \
+  --n-frames 1 \
+  --use-colmap \
+  --colmap-executable data/colmap/COLMAP.bat \
+  --colmap-use-gpu 1
+```
+
+Reuse existing extracted frame images:
 
 ```bash
 python -m nvs2colmap.n3dv \
@@ -114,5 +161,13 @@ python -m nvs2colmap.n3dv \
   COLMAP files, default `.png`.
 - `--video-extension`: video file extension to read, default `.mp4`. The dot is
   optional and matching is case-insensitive.
-- `--skip-video-extraction`: keep existing `frame*/input` images and only
-  write COLMAP text files.
+- `--skip-video-extraction`: keep existing `frame*/input` images and skip video
+  decoding. In the default mode this reuses `frame*/images`; with
+  `--use-colmap` it reuses `frame*/input`. If `--n-frames` is omitted, the
+  command counts existing `frame%d` directories.
+- `--use-colmap`: run the full COLMAP pipeline instead of only writing
+  `sparse/0` text models.
+- `--colmap-executable`: path to the COLMAP executable used with
+  `--use-colmap`.
+- `--colmap-use-gpu`: whether COLMAP SIFT extraction and matching should use
+  GPU, default `1`.
