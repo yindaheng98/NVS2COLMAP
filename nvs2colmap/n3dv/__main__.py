@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from nvs2colmap.colmap import run_video_colmap
 from nvs2colmap.write_model import write_video_colmap_text_model
 
 from .extract_videos import count_frame_dirs, extract_videos
@@ -56,6 +57,25 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Only convert poses_bounds.npy into COLMAP text files for existing frame*/input folders.",
     )
+    parser.add_argument(
+        "--colmap-mode",
+        choices=("text", "colmap"),
+        default="text",
+        help=(
+            "COLMAP output mode. 'text' only writes sparse/0 text models; "
+            "'colmap' runs COLMAP feature extraction, matching, triangulation, mapping, and undistortion."
+        ),
+    )
+    parser.add_argument(
+        "--colmap-executable",
+        default="colmap",
+        help="COLMAP executable used when --colmap-mode colmap.",
+    )
+    parser.add_argument(
+        "--use-gpu",
+        default="1",
+        help="Whether COLMAP SIFT extraction/matching should use GPU, used when --colmap-mode colmap.",
+    )
     return parser.parse_args()
 
 
@@ -80,12 +100,22 @@ def main() -> None:
     elif n_frames is None:
         n_frames = count_frame_dirs(folder / "frame%d")
 
-    write_video_colmap_text_model(
-        output_pattern=folder / "frame%d" / "sparse" / "0",
-        cameras=cameras,
-        n_frames=n_frames,
-        image_extension=args.image_extension,
-    )
+    if args.colmap_mode == "text":
+        write_video_colmap_text_model(
+            output_pattern=folder / "frame%d" / "sparse" / "0",
+            cameras=cameras,
+            n_frames=n_frames,
+            image_extension=args.image_extension,
+        )
+    else:
+        run_video_colmap(
+            output_pattern=folder / "frame%d",
+            cameras=cameras,
+            n_frames=n_frames,
+            image_extension=args.image_extension,
+            colmap_executable=args.colmap_executable,
+            use_gpu=args.use_gpu,
+        )
 
     print(f"Done: {folder}")
 
