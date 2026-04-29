@@ -4,6 +4,20 @@ This package converts scenes in the **Neural 3D Video Dataset** format into
 per-frame COLMAP outputs. By default it writes COLMAP text models. With
 `--use-colmap`, it runs the full COLMAP pipeline on every extracted frame.
 
+## Supported Datasets
+
+- **Neural 3D Video Dataset**: dataset
+  [facebookresearch/Neural_3D_Video](https://github.com/facebookresearch/Neural_3D_Video),
+  paper
+  [Neural 3D Video Synthesis from Multi-view Video](https://arxiv.org/abs/2103.02597).
+- **StreamRF / Meet Room Dataset**: dataset
+  [AlgoHunt/StreamRF](https://github.com/AlgoHunt/StreamRF), paper
+  [Streaming Radiance Fields for 3D Video Synthesis](https://arxiv.org/abs/2210.14831).
+- **Robo360**: dataset
+  [liuyubian/Robo360](https://huggingface.co/datasets/liuyubian/Robo360),
+  paper
+  [Robo360: A 3D Omnispective Multi-Material Robotic Manipulation Dataset](https://arxiv.org/abs/2312.06686).
+
 Runtime dependencies:
 
 ```bash

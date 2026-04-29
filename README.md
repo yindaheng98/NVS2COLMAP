@@ -7,6 +7,20 @@ Utilities for converting novel view synthesis datasets to COLMAP format.
 - **Neural 3D Video Dataset**: scenes with `poses_bounds.npy` and one `mp4`
   file per camera. See `nvs2colmap/n3dv/README.md`.
 
+## Supported Datasets
+
+- **Neural 3D Video Dataset**: dataset
+  [facebookresearch/Neural_3D_Video](https://github.com/facebookresearch/Neural_3D_Video),
+  paper
+  [Neural 3D Video Synthesis from Multi-view Video](https://arxiv.org/abs/2103.02597).
+- **StreamRF / Meet Room Dataset**: dataset
+  [AlgoHunt/StreamRF](https://github.com/AlgoHunt/StreamRF), paper
+  [Streaming Radiance Fields for 3D Video Synthesis](https://arxiv.org/abs/2210.14831).
+- **Robo360**: dataset
+  [liuyubian/Robo360](https://huggingface.co/datasets/liuyubian/Robo360),
+  paper
+  [Robo360: A 3D Omnispective Multi-Material Robotic Manipulation Dataset](https://arxiv.org/abs/2312.06686).
+
 ## Quick Start
 
 Install the Python runtime dependencies:
