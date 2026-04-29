@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from nvs2colmap.colmap import write_video_colmap_text_model
+from nvs2colmap.write_model import write_video_colmap_text_model
 
 from .extract_videos import count_frame_dirs, extract_videos
 from .poses_bounds import read_poses_bounds

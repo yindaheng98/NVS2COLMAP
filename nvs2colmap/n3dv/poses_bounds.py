@@ -4,8 +4,8 @@ import numpy as np
 import torch
 from pathlib import Path
 
-from nvs2colmap.colmap import CameraModel
-from nvs2colmap.utils.rotation import matrix_to_quaternion
+from nvs2colmap.write_model import CameraModel
+from nvs2colmap.utils import matrix_to_quaternion
 
 
 def read_camera_meta_n3dv(folder):

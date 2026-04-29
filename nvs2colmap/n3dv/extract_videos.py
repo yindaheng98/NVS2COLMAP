@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from nvs2colmap.colmap import CameraModel
-from nvs2colmap.utils.ffmpeg import extract_video_frames
+from nvs2colmap.write_model import CameraModel
+from nvs2colmap.utils import extract_video_frames
 
 
 def count_frame_dirs(output_pattern: Path, start_number: int = 1) -> int:
