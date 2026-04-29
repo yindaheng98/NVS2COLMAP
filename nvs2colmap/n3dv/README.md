@@ -161,7 +161,7 @@ python -m nvs2colmap.n3dv \
   COLMAP files, default `.png`.
 - `--video-extension`: video file extension to read, default `.mp4`. The dot is
   optional and matching is case-insensitive.
-- `--skip-video-extraction`: keep existing `frame*/input` images and skip video
+- `--skip-video-extraction`: keep existing extracted frame images and skip video
   decoding. In the default mode this reuses `frame*/images`; with
   `--use-colmap` it reuses `frame*/input`. If `--n-frames` is omitted, the
   command counts existing `frame%d` directories.
