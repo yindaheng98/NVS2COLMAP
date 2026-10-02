@@ -60,12 +60,12 @@ Run the full COLMAP pipeline for each frame:
 ```bash
 python -m nvs2colmap.n3dv \
   --path data/Robo360/xarm6_gold_rope_in_basket_2 \
-  --ffmpeg D:/MyPrograms/ffmpeg.exe \
-  --ffprobe D:/MyPrograms/ffprobe.exe \
+  --ffmpeg ffmpeg \
+  --ffprobe ffprobe \
   --video-extension MP4 \
   --n-frames 1 \
   --use-colmap \
-  --colmap-executable data/colmap/COLMAP.bat \
+  --colmap-executable colmap \
   --colmap-use-gpu 1
 ```
 
