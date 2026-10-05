@@ -9,8 +9,8 @@ from pathlib import Path
 import numpy as np
 
 
-def cap_direction(axis, cap_angle, rng):
-    z = rng.uniform(np.cos(cap_angle), 1.0)
+def cap_direction(axis, cap_angle_min, cap_angle_max, rng):
+    z = rng.uniform(np.cos(cap_angle_max), np.cos(cap_angle_min))
     phi = rng.uniform(0, 2 * np.pi)
     xy = np.sqrt(1 - z * z)
     local = np.array([xy * np.cos(phi), xy * np.sin(phi), z])
@@ -30,27 +30,23 @@ def main() -> None:
     parser.add_argument("--height", type=int, required=True)
     parser.add_argument("--width", type=int, required=True)
     parser.add_argument("--focal", type=float, required=True, help="Focal length in pixels. fx = fy, principal point at the image center.")
-    parser.add_argument("--center", type=float, nargs=3, required=True, help="Shell center and look-at point.")
-    parser.add_argument("--radius-min", type=float, default=10.0)
-    parser.add_argument("--radius-max", type=float, default=12.0)
-    parser.add_argument("--azimuth", type=float, default=0.0, help="Cap axis azimuth in degrees.")
-    parser.add_argument("--elevation", type=float, default=90.0, help="Cap axis elevation in degrees. 90 looks straight up.")
-    parser.add_argument("--cap-angle", type=float, default=90.0, help="Cap half-angle in degrees. 90 is a hemisphere; smaller clusters cameras on one side.")
-    parser.add_argument("--min-angle", type=float, default=10.0, help="Minimum angle in degrees between a camera and its nearest neighbor.")
-    parser.add_argument("--max-angle", type=float, default=45.0, help="Maximum angle in degrees between a camera and its nearest neighbor.")
+    parser.add_argument("--center", type=float, nargs=3, default=(0.0, 0.0, 0.0), metavar=("X", "Y", "Z"), help="Shell center and look-at point.")
+    parser.add_argument("--radius", type=float, nargs=2, default=(10.0, 12.0), metavar=("MIN", "MAX"))
+    parser.add_argument("--axis", type=float, nargs=2, default=(0.0, 90.0), metavar=("AZIMUTH", "ELEVATION"), help="Cap axis direction in degrees. Azimuth 0 points along +X; elevation 90 points straight up.")
+    parser.add_argument("--cap-angle", type=float, nargs=2, default=(0.0, 90.0), metavar=("MIN", "MAX"), help="Band edges in degrees from the cap axis. 0 90 is the upper hemisphere when elevation is 90.")
+    parser.add_argument("--spacing", type=float, nargs=2, default=(10.0, 45.0), metavar=("MIN", "MAX"), help="Angle in degrees between a camera and its nearest neighbor.")
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else sys.argv[1:]
     args = parser.parse_args(argv)
 
-    azimuth = np.deg2rad(args.azimuth)
-    elevation = np.deg2rad(args.elevation)
+    azimuth, elevation = np.deg2rad(args.axis)
     axis = np.array([
         np.cos(elevation) * np.cos(azimuth),
         np.cos(elevation) * np.sin(azimuth),
         np.sin(elevation),
     ])
-    cap_angle = np.deg2rad(args.cap_angle)
-    min_angle = np.deg2rad(args.min_angle)
-    max_angle = np.deg2rad(args.max_angle)
+    cap_angle_min, cap_angle_max = np.deg2rad(args.cap_angle)
+    min_angle, max_angle = np.deg2rad(args.spacing)
+    radius_min, radius_max = args.radius
     center = np.array(args.center)
     rng = np.random.default_rng()
 
@@ -61,13 +57,13 @@ def main() -> None:
         tries += 1
         if tries > 100:
             raise RuntimeError("Could not place that many cameras on this cap.")
-        direction = cap_direction(axis, cap_angle, rng)
+        direction = cap_direction(axis, cap_angle_min, cap_angle_max, rng)
         if directions:
             nearest = np.arccos(np.clip(np.stack(directions) @ direction, -1.0, 1.0)).min()
             if nearest < min_angle or nearest > max_angle:
                 continue
         directions.append(direction)
-        radii.append(rng.uniform(args.radius_min, args.radius_max))
+        radii.append(rng.uniform(radius_min, radius_max))
 
     rows = []
     poses = []
