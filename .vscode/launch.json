@@ -32,7 +32,11 @@
                 "--elevation",
                 "30",
                 "--cap-angle",
-                "35"
+                "60",
+                "--blend",
+                "${workspaceFolder}/data/point_odyssey/data/demo_scene/robot.blend",
+                "--blender",
+                "C:/Program Files (x86)/Steam/steamapps/common/Blender/blender.exe"
             ]
         },
         {

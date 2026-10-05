@@ -1,6 +1,8 @@
-"""Sample cameras on a spherical cap and write poses_bounds.npy."""
+"""Sample cameras on a spherical cap, write poses_bounds.npy, and place them in Blender."""
 
 import argparse
+import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -22,6 +24,8 @@ def cap_direction(axis, cap_angle, rng):
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--blend", type=Path, required=True, help="Blender file to open when placing the sampled cameras.")
+    parser.add_argument("--blender", default="blender", help="Blender executable.")
     parser.add_argument("--n-cameras", type=int, required=True)
     parser.add_argument("--height", type=int, required=True)
     parser.add_argument("--width", type=int, required=True)
@@ -66,6 +70,7 @@ def main() -> None:
         radii.append(rng.uniform(args.radius_min, args.radius_max))
 
     rows = []
+    poses = []
     for direction, radius in zip(directions, radii):
         position = center + direction * radius
         forward = center - position
@@ -82,6 +87,7 @@ def main() -> None:
         c2w[:3, 1] = down
         c2w[:3, 2] = forward
         c2w[:3, 3] = position
+        poses.append(c2w)
         # Inverse of read_camera_meta_n3dv: poses_bounds columns are [down, right, back, position, hwf].
         pose = np.zeros((3, 5))
         pose[:3, 0] = c2w[:3, 1]
@@ -94,6 +100,31 @@ def main() -> None:
     args.output.mkdir(parents=True, exist_ok=True)
     path = args.output / "poses_bounds.npy"
     np.save(path, np.stack(rows))
+    pad = max(2, len(str(args.n_cameras - 1)))
+    # OpenCV camera (+Z forward, +Y down) to Blender camera (-Z forward, +Y up).
+    blender_from_opencv = np.diag([1.0, -1.0, -1.0, 1.0])
+    cameras = [
+        [f"cam{i:0{pad}d}", args.height, args.width, args.focal, (c2w @ blender_from_opencv).tolist()]
+        for i, c2w in enumerate(poses)
+    ]
+    preview = args.output / "cameras.blend"
+    subprocess.run(
+        [
+            args.blender,
+            str(args.blend.absolute()),
+            "--background",
+            "--python-exit-code",
+            "1",
+            "--python",
+            str(Path(__file__).with_name("preview_cameras.py")),
+            "--",
+            "--output",
+            str(preview.absolute()),
+            "--cameras",
+            json.dumps(cameras, separators=(",", ":")),
+        ],
+        check=True,
+    )
     print(f"Done: {path}")
 
 
