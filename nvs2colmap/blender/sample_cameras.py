@@ -107,7 +107,7 @@ def main() -> None:
         [f"cam{i:0{pad}d}", args.height, args.width, args.focal, (c2w @ blender_from_opencv).tolist()]
         for i, c2w in enumerate(poses)
     ]
-    preview = args.output / "cameras.blend"
+    preview = args.output / "preview.blend"
     subprocess.run(
         [
             args.blender,

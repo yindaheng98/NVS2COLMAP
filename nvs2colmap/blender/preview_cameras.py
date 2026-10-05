@@ -33,6 +33,7 @@ def main() -> None:
         scene.camera = obj
         scene.render.resolution_x = width
         scene.render.resolution_y = height
+    bpy.context.preferences.filepaths.save_version = 0
     bpy.ops.wm.save_as_mainfile(filepath=str(args.output))
     print(f"Done: {args.output}")
 
