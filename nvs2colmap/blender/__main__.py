@@ -19,7 +19,7 @@ def main() -> None:
     parser.add_argument("--blender", default="blender", help="Blender executable.")
     args = parser.parse_args()
 
-    folder = args.path.resolve()
+    folder = args.path.absolute()
     n_cameras, Rs, Ts, hwf, _ = read_camera_meta_n3dv(folder)
     w2c = np.tile(np.eye(4), (n_cameras, 1, 1))
     w2c[:, :3, :3] = Rs.numpy()
@@ -35,8 +35,10 @@ def main() -> None:
     subprocess.run(
         [
             args.blender,
-            str(args.blend.resolve()),
+            str(args.blend.absolute()),
             "--background",
+            "--python-exit-code",
+            "1",
             "--python",
             str(Path(__file__).with_name("render.py")),
             "--",

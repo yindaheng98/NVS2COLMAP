@@ -21,7 +21,15 @@ def main() -> None:
     cam = cam_obj.data
     cam.sensor_fit = "HORIZONTAL"
     cam.sensor_width = 36.0
+    scene.render.engine = "CYCLES"
+    scene.cycles.device = "GPU"
+    cycles_prefs = bpy.context.preferences.addons["cycles"].preferences
+    cycles_prefs.compute_device_type = "OPTIX"
+    cycles_prefs.get_devices()
+    for device in cycles_prefs.devices:
+        device.use = device.type != "CPU"
     scene.render.resolution_percentage = 100
+    scene.render.image_settings.media_type = "VIDEO"
     scene.render.image_settings.file_format = "FFMPEG"
     scene.render.ffmpeg.format = "MPEG4"
     scene.render.ffmpeg.codec = "H264"
