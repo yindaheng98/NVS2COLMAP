@@ -41,6 +41,10 @@
             "args": [
                 "--path",
                 "${workspaceFolder}/data/point_odyssey/robot",
+                "--n-frames",
+                "60",
+                "--start-number",
+                "61",
                 "--blend",
                 "${workspaceFolder}/data/point_odyssey/data/demo_scene/robot.blend",
                 "--blender",
@@ -57,10 +61,6 @@
             "args": [
                 "--path",
                 "${workspaceFolder}/data/point_odyssey/robot",
-                "--start-number",
-                "61",
-                "--n-frames",
-                "60",
                 "--ffmpeg",
                 ".\\data\\ffmpeg.exe",
                 "--ffprobe",

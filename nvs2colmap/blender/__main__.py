@@ -17,6 +17,8 @@ def main() -> None:
     parser.add_argument("--path", type=Path, required=True, help="Scene directory containing poses_bounds.npy.")
     parser.add_argument("--blend", type=Path, required=True, help="Blender file to render.")
     parser.add_argument("--blender", default="blender", help="Blender executable.")
+    parser.add_argument("--n-frames", type=int, help="Number of frames to render. Defaults to the rest of the scene.")
+    parser.add_argument("--start-number", type=int, default=1, help="1-based scene frame to start rendering from.")
     args = parser.parse_args()
 
     folder = args.path.absolute()
@@ -46,6 +48,9 @@ def main() -> None:
             str(folder),
             "--cameras",
             json.dumps(cameras, separators=(",", ":")),
+            "--start-number",
+            str(args.start_number),
+            *(["--n-frames", str(args.n_frames)] if args.n_frames is not None else []),
         ],
         check=True,
     )

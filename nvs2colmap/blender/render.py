@@ -13,6 +13,8 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--cameras", type=json.loads, required=True)
+    parser.add_argument("--start-number", type=int, default=1)
+    parser.add_argument("--n-frames", type=int)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
 
     scene = bpy.context.scene
@@ -32,6 +34,9 @@ def main() -> None:
     scene.render.ffmpeg.constant_rate_factor = "MEDIUM"
     scene.render.ffmpeg.audio_codec = "NONE"
     scene.render.use_file_extension = False
+    scene.frame_start += args.start_number - 1
+    if args.n_frames is not None:
+        scene.frame_end = min(scene.frame_end, scene.frame_start + args.n_frames - 1)
 
     for name, height, width, focal, c2w in args.cameras:
         scene.render.resolution_x = width
