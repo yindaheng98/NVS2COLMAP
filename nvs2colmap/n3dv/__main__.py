@@ -74,7 +74,7 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help=(
             "Run COLMAP feature extraction, matching, triangulation, mapping, "
-            "and undistortion instead of only writing sparse/0 text models."
+            "and image undistortion instead of only writing sparse/0 text models."
         ),
     )
     parser.add_argument(

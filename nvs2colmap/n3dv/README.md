@@ -89,9 +89,9 @@ coffee_martini/
   ...
 ```
 
-With `--use-colmap`, each frame directory instead contains the usual COLMAP
-workspace outputs after feature extraction, matching, triangulation, mapping,
-and undistortion:
+With `--use-colmap`, each frame directory instead contains the COLMAP workspace
+after feature extraction, matching, triangulation, mapping, and undistortion.
+`image_undistorter` writes `images/`, `sparse/`, and `stereo/`.
 
 ```text
 coffee_martini/

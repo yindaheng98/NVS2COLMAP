@@ -2,6 +2,8 @@
 
 Utilities for converting novel view synthesis datasets to COLMAP format.
 
+**These scenes are prepared for [InstantSplat](https://github.com/yindaheng98/InstantSplat). InstantSplat initializes one frame at a time and does not undistort a whole sequence, so this repository undistorts every frame. The default commands write known-pose `sparse/0` text models and do not call COLMAP. `--use-colmap` runs feature extraction, matching, triangulation, mapping, `image_undistorter`, and `mask_undistorter` on every frame. Undistorted images go to `images/`, and undistorted masks go to `image_masks/`.**
+
 ## Supported Formats
 
 - **Neural 3D Video Dataset**: scenes with `poses_bounds.npy` and one `mp4`
@@ -36,11 +38,13 @@ pip install numpy plyfile torch
 ```
 
 For Neural 3D Video scenes, the command also needs `ffmpeg` and `ffprobe` on
-`PATH`, or explicit paths via `--ffmpeg` and `--ffprobe`. If you want to run
-the full COLMAP pipeline, also provide a COLMAP executable via
-`--colmap-executable`.
+`PATH`, or explicit paths via `--ffmpeg` and `--ffprobe`. To run the COLMAP
+reconstruction that
+[InstantSplat](https://github.com/yindaheng98/InstantSplat) continues from,
+also provide a COLMAP executable via `--colmap-executable`.
 
-Extract a Neural 3D Video scene and write per-frame COLMAP text models:
+Extract a Neural 3D Video scene and write per-frame COLMAP text models for
+[InstantSplat](https://github.com/yindaheng98/InstantSplat):
 
 ```bash
 python -m nvs2colmap.n3dv \
@@ -61,7 +65,8 @@ python -m nvs2colmap.n3dv \
   --n-frames 300
 ```
 
-Run the full COLMAP pipeline for each frame:
+Run COLMAP reconstruction and undistortion for each frame, for
+[InstantSplat](https://github.com/yindaheng98/InstantSplat):
 
 ```bash
 python -m nvs2colmap.n3dv \
@@ -76,7 +81,8 @@ python -m nvs2colmap.n3dv \
 ```
 
 Link a Dynamic 3D Gaussians scene, including its masks, and write per-frame
-COLMAP text models:
+COLMAP text models for
+[InstantSplat](https://github.com/yindaheng98/InstantSplat):
 
 ```bash
 python -m nvs2colmap.dynamic3dgs \
@@ -87,16 +93,19 @@ python -m nvs2colmap.dynamic3dgs \
 For Neural 3D Video scenes, decoded frames are written to `frame*/images` by
 default, and the command also writes `frame*/sparse/0` text models. With
 `--use-colmap`, decoded frames are written to `frame*/input`, and each frame
-additionally gets the standard COLMAP outputs such as `distorted/`, `images/`,
-`sparse/`, and `stereo/`. When `--start-number N` is provided, decoding starts
-from source video frame `N`, and the generated folders/images are also numbered
-from `N`.
+gets `distorted/sparse/0` plus undistorted `images/`, `sparse/`, and `stereo/`
+for [InstantSplat](https://github.com/yindaheng98/InstantSplat). When
+`--start-number N` is provided, decoding starts from source video frame `N`,
+and the generated folders/images are also numbered from `N`.
 
 For Dynamic 3D Gaussians scenes, images from both `train_meta.json` and
 `test_meta.json` are hardlinked into `frame*/images`, and included masks are
 hardlinked into `frame*/image_masks` (`cam01.jpg` pairs with `cam01.jpg.png`).
 `--no-train-camera` and `--no-test-camera` drop one split. The same
-`--use-colmap` switch writes images to `frame*/input`, masks to
-`frame*/input_mask`, and runs COLMAP.
-`--start-number` uses the same 1-based output numbering; source file
-`000000.jpg` is frame `1`.
+`--use-colmap` switch writes images to `frame*/input` and masks to
+`frame*/input_mask`, then undistorts them to `images/` and `image_masks/`
+for [InstantSplat](https://github.com/yindaheng98/InstantSplat). That switch
+does not write `init_pt_cld.npz` into `sparse/0/points3D.ply`; the
+reconstructed points stay in `distorted/sparse/0` and the undistorted
+`sparse/`. `--start-number` uses the same 1-based output numbering; source
+file `000000.jpg` is frame `1`.

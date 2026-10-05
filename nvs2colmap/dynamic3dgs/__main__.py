@@ -57,7 +57,7 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help=(
             "Run COLMAP feature extraction, matching, triangulation, mapping, "
-            "and undistortion instead of only writing sparse/0 text models."
+            "and undistortion of images and masks instead of only writing sparse/0 text models."
         ),
     )
     parser.add_argument(
@@ -115,6 +115,12 @@ def main() -> None:
             start_number=args.start_number,
             image_extension="",
         )
+        write_init_point_cloud(
+            npz_path=folder / "init_pt_cld.npz",
+            output_pattern=frame_output_pattern / "sparse" / "0" / "points3D.ply",
+            n_frames=n_frames,
+            start_number=args.start_number,
+        )
     else:
         run_video_colmap(
             output_pattern=frame_output_pattern,
@@ -124,14 +130,8 @@ def main() -> None:
             image_extension="",
             colmap_executable=args.colmap_executable,
             use_gpu=args.colmap_use_gpu,
+            has_mask=True,
         )
-
-    write_init_point_cloud(
-        npz_path=folder / "init_pt_cld.npz",
-        output_pattern=frame_output_pattern / "sparse" / "0" / "points3D.ply",
-        n_frames=n_frames,
-        start_number=args.start_number,
-    )
 
     print(f"Done: {folder}")
 

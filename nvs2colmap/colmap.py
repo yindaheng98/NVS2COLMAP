@@ -12,6 +12,7 @@ from nvs2colmap.utils.colmap import (
     feature_extractor,
     image_undistorter,
     mapper,
+    mask_undistorter,
     point_triangulator,
     read_db,
 )
@@ -39,6 +40,7 @@ def run_colmap(
     image_extension: str = ".png",
     colmap_executable: str = "colmap",
     use_gpu: str = "1",
+    has_mask: bool = False,
 ) -> None:
     folder = Path(folder)
     colmap_cameras, colmap_images = build_colmap_records(cameras, image_extension)
@@ -68,6 +70,10 @@ def run_colmap(
     # To fit sparse init in instantsplat
     if image_undistorter(str(folder), colmap_executable=colmap_executable) != 0:
         raise RuntimeError("Image undistortion failed")
+    if has_mask:
+        image_names = [f"{camera.name}{image_extension}" for camera in cameras]
+        if mask_undistorter(folder, image_names, colmap_executable=colmap_executable) != 0:
+            raise RuntimeError("Mask undistortion failed")
 
 
 def run_video_colmap(
@@ -78,6 +84,7 @@ def run_video_colmap(
     image_extension: str = ".png",
     colmap_executable: str = "colmap",
     use_gpu: str = "1",
+    has_mask: bool = False,
 ) -> None:
     output_pattern = str(output_pattern)
     for frame in range(start_number, start_number + n_frames):
@@ -87,4 +94,5 @@ def run_video_colmap(
             image_extension=image_extension,
             colmap_executable=colmap_executable,
             use_gpu=use_gpu,
+            has_mask=has_mask,
         )

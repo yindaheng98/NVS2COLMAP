@@ -1,8 +1,10 @@
 """COLMAP command helpers."""
 
+import os
+import shutil
 import sqlite3
 import subprocess
-import os
+from pathlib import Path
 
 
 def execute(cmd):
@@ -62,7 +64,6 @@ def mapper(folder, mapper_input_path, colmap_executable="colmap"):
         colmap_executable, "mapper",
         "--database_path", os.path.join(folder, "distorted", "database.db"),
         "--image_path", os.path.join(folder, "input"),
-        "--Mapper.ba_global_function_tolerance=0.000001",
         "--input_path", mapper_input_path,
         "--output_path", os.path.join(folder, "distorted", "sparse", "0")
     ]
@@ -102,3 +103,46 @@ def image_undistorter(folder, colmap_executable="colmap"):
         "--output_type=COLMAP",
     ]
     return execute(cmd)
+
+
+def mask_undistorter(folder, image_names, colmap_executable="colmap"):
+    folder = Path(folder)
+    image_names = [Path(name) for name in image_names]
+    tmp_mask = folder / "tmp_mask"
+    shutil.rmtree(tmp_mask, ignore_errors=True)
+    linked = False
+    for image_name in image_names:
+        src = folder / "input_mask" / image_name.with_name(image_name.name + ".png")
+        if not src.is_file():
+            continue
+        dst = tmp_mask / image_name
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        os.link(src, dst)
+        linked = True
+    if not linked:
+        shutil.rmtree(tmp_mask, ignore_errors=True)
+        return 0
+    tmp_sparse = folder / "tmp_mask_sparse"
+    shutil.rmtree(tmp_sparse, ignore_errors=True)
+    ret = execute([
+        colmap_executable, "image_undistorter",
+        "--image_path", os.fspath(tmp_mask),
+        "--input_path", os.fspath(folder / "distorted" / "sparse" / "0"),
+        "--output_path", os.fspath(tmp_sparse),
+        "--output_type=COLMAP",
+    ])
+    shutil.rmtree(tmp_mask, ignore_errors=True)
+    if ret != 0:
+        shutil.rmtree(tmp_sparse, ignore_errors=True)
+        return ret
+    for image_name in image_names:
+        src = tmp_sparse / "images" / image_name
+        if not src.is_file():
+            continue
+        dst = folder / "image_masks" / image_name.with_name(image_name.name + ".png")
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        if dst.exists():
+            dst.unlink()
+        os.link(src, dst)
+    shutil.rmtree(tmp_sparse, ignore_errors=True)
+    return 0

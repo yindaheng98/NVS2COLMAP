@@ -84,16 +84,19 @@ basketball/
     ...
 ```
 
-`init_pt_cld.npz` stores xyz and rgb in the first six columns. Those points are
-written to `sparse/0/points3D.ply` and hardlinked into every extracted frame.
+`init_pt_cld.npz` stores xyz and rgb in the first six columns. Without
+`--use-colmap`, those points are written to `sparse/0/points3D.ply` and
+hardlinked into every extracted frame. `--use-colmap` leaves the reconstructed
+points in `distorted/sparse/0` and does not write this ply.
 Mask filenames keep the image filename and add `.png`, so `images/cam01.jpg`
 pairs with `image_masks/cam01.jpg.png`.
 
 With `--use-colmap`, images are linked into `frame*/input` and masks into
 `frame*/input_mask` (`input/cam01.jpg` pairs with `input_mask/cam01.jpg.png`).
-Each frame then gets the usual COLMAP workspace outputs after feature
-extraction, matching,
-triangulation, mapping, and undistortion.
+Each frame then runs feature extraction, matching, triangulation, mapping,
+`image_undistorter`, and `mask_undistorter`. Undistorted images are written to
+`images/`, and undistorted masks to `image_masks/`
+(`image_masks/cam01.jpg.png`).
 
 All generated camera models use `PINHOLE`. Every camera gets its own COLMAP
 camera ID because these scenes are multi-view captures with known poses and
