@@ -9,12 +9,11 @@ from plyfile import PlyData, PlyElement
 def write_pcd(path, points, colors) -> None:
     """Write a point cloud in the InstantSplat ``points3D.ply`` layout.
 
-    ``points`` and ``colors`` are ``(N, 3)`` arrays. Colors are in ``[0, 1]``
-    and are scaled to 8-bit RGB here, matching
-    ``InitializedPointCloud.save_ply``.
+    ``points`` and ``colors`` are ``(N, 3)`` arrays. Colors are already 8-bit
+    RGB values in ``[0, 255]``.
     """
     xyz = np.asarray(points)
-    rgb = np.asarray(colors) * 255.0
+    rgb = np.asarray(colors)
     dtype = [
         ("x", "f4"),
         ("y", "f4"),

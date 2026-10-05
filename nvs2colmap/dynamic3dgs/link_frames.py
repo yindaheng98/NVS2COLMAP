@@ -36,6 +36,7 @@ def link_frames(
     n_frames: int,
     start_number: int = 1,
     image_dirname: str = "images",
+    mask_dirname: str = "image_masks",
 ) -> None:
     folder = Path(folder)
     frame_pattern = str(frame_pattern)
@@ -43,7 +44,7 @@ def link_frames(
         frame_index = start_number - 1 + offset
         frame_dir = Path(frame_pattern % (start_number + offset))
         image_dir = frame_dir / image_dirname
-        mask_dir = frame_dir / "image_masks"
+        mask_dir = frame_dir / mask_dirname
         for camera in cameras:
             filename = camera.filenames[frame_index]
             link_file(folder / "ims" / filename, image_dir / camera.camera.name)

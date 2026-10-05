@@ -20,6 +20,6 @@ def write_init_point_cloud(
     data = np.load(npz_path)["data"]
     output_pattern = str(output_pattern)
     paths = [Path(output_pattern % frame) for frame in range(start_number, start_number + n_frames)]
-    write_pcd(paths[0], data[:, :3], data[:, 3:6])
+    write_pcd(paths[0], data[:, :3], data[:, 3:6] * 255.0)
     for path in paths[1:]:
         link_file(paths[0], path)

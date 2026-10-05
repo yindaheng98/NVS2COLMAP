@@ -96,6 +96,7 @@ For Dynamic 3D Gaussians scenes, images from both `train_meta.json` and
 `test_meta.json` are hardlinked into `frame*/images`, and included masks are
 hardlinked into `frame*/image_masks` (`cam01.jpg` pairs with `cam01.jpg.png`).
 `--no-train-camera` and `--no-test-camera` drop one split. The same
-`--use-colmap` switch writes images to `frame*/input` and runs COLMAP.
+`--use-colmap` switch writes images to `frame*/input`, masks to
+`frame*/input_mask`, and runs COLMAP.
 `--start-number` uses the same 1-based output numbering; source file
 `000000.jpg` is frame `1`.

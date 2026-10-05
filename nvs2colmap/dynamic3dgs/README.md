@@ -56,7 +56,7 @@ with the frame index.
 
 By default every camera in both files is extracted, sorted by `cam_id`. Pass
 `--no-train-camera` or `--no-test-camera` to drop one split. Cameras without a
-`seg/` mask are still extracted, and no `image_masks` file is written for them.
+`seg/` mask are still extracted, and no mask file is written for them.
 Source frame `000000` is output frame `1`.
 
 ## Output Format
@@ -89,9 +89,10 @@ written to `sparse/0/points3D.ply` and hardlinked into every extracted frame.
 Mask filenames keep the image filename and add `.png`, so `images/cam01.jpg`
 pairs with `image_masks/cam01.jpg.png`.
 
-With `--use-colmap`, images are linked into `frame*/input` instead of
-`frame*/images`. Masks stay in `frame*/image_masks`. Each frame then gets the
-usual COLMAP workspace outputs after feature extraction, matching,
+With `--use-colmap`, images are linked into `frame*/input` and masks into
+`frame*/input_mask` (`input/cam01.jpg` pairs with `input_mask/cam01.jpg.png`).
+Each frame then gets the usual COLMAP workspace outputs after feature
+extraction, matching,
 triangulation, mapping, and undistortion.
 
 All generated camera models use `PINHOLE`. Every camera gets its own COLMAP

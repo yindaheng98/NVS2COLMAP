@@ -90,6 +90,7 @@ def main() -> None:
     n_frames = args.n_frames
     frame_output_pattern = folder / "frame%d"
     image_dir_name = "input" if args.use_colmap else "images"
+    mask_dir_name = "input_mask" if args.use_colmap else "image_masks"
     if not args.skip_frame_linking:
         if n_frames is None:
             n_frames = available_frames - args.start_number + 1
@@ -100,6 +101,7 @@ def main() -> None:
             n_frames=n_frames,
             start_number=args.start_number,
             image_dirname=image_dir_name,
+            mask_dirname=mask_dir_name,
         )
     elif n_frames is None:
         n_frames = count_frame_dirs(frame_output_pattern, start_number=args.start_number)
