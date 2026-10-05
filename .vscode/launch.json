@@ -1,0 +1,67 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "point_odyssey: sample cameras",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "nvs2colmap.blender.sample_cameras",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "args": [
+                "--output",
+                "${workspaceFolder}/data/point_odyssey/robot",
+                "--n-cameras",
+                "12",
+                "--height",
+                "1080",
+                "--width",
+                "1920",
+                "--focal",
+                "640",
+                "--center",
+                "4.3",
+                "1.5",
+                "2.2",
+                "--radius-min",
+                "8",
+                "--radius-max",
+                "12",
+                "--azimuth",
+                "-23",
+                "--elevation",
+                "30",
+                "--cap-angle",
+                "35"
+            ]
+        },
+        {
+            "name": "point_odyssey: render",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "nvs2colmap.blender",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "args": [
+                "--path",
+                "${workspaceFolder}/data/point_odyssey/robot",
+                "--blend",
+                "${workspaceFolder}/data/point_odyssey/data/demo_scene/robot.blend",
+                "--blender",
+                "C:/Program Files (x86)/Steam/steamapps/common/Blender/blender.exe"
+            ]
+        },
+        {
+            "name": "point_odyssey: n3dv",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "nvs2colmap.n3dv",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "args": [
+                "--path",
+                "${workspaceFolder}/data/point_odyssey/robot"
+            ]
+        }
+    ]
+}
