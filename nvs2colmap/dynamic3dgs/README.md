@@ -15,7 +15,7 @@ the full COLMAP pipeline on every extracted frame.
 Runtime dependencies:
 
 ```bash
-pip install numpy torch
+pip install numpy plyfile torch
 ```
 
 ## Dataset Format
@@ -35,6 +35,7 @@ basketball/
     1/000000.png
     2/000000.png
     ...
+  init_pt_cld.npz
 ```
 
 `train_meta.json` and `test_meta.json` use the same layout. Each stores one
@@ -78,10 +79,13 @@ basketball/
       cameras.txt
       images.txt
       points3D.txt
+      points3D.ply
   frame2/
     ...
 ```
 
+`init_pt_cld.npz` stores xyz and rgb in the first six columns. Those points are
+written to `sparse/0/points3D.ply` and hardlinked into every extracted frame.
 Mask filenames keep the image filename and add `.png`, so `images/cam01.jpg`
 pairs with `image_masks/cam01.jpg.png`.
 

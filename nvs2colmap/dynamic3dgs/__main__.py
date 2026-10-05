@@ -10,6 +10,7 @@ from nvs2colmap.write_model import write_video_colmap_text_model
 
 from .camera_meta import read_camera_meta
 from .link_frames import count_frame_dirs, link_frames
+from .points import write_init_point_cloud
 
 
 def parse_args() -> argparse.Namespace:
@@ -122,6 +123,13 @@ def main() -> None:
             colmap_executable=args.colmap_executable,
             use_gpu=args.colmap_use_gpu,
         )
+
+    write_init_point_cloud(
+        npz_path=folder / "init_pt_cld.npz",
+        output_pattern=frame_output_pattern / "sparse" / "0" / "points3D.ply",
+        n_frames=n_frames,
+        start_number=args.start_number,
+    )
 
     print(f"Done: {folder}")
 

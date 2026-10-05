@@ -32,7 +32,7 @@ Utilities for converting novel view synthesis datasets to COLMAP format.
 Install the Python runtime dependencies:
 
 ```bash
-pip install numpy torch
+pip install numpy plyfile torch
 ```
 
 For Neural 3D Video scenes, the command also needs `ffmpeg` and `ffprobe` on
