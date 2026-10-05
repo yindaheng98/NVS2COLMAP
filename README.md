@@ -6,6 +6,8 @@ Utilities for converting novel view synthesis datasets to COLMAP format.
 
 - **Neural 3D Video Dataset**: scenes with `poses_bounds.npy` and one `mp4`
   file per camera. See `nvs2colmap/n3dv/README.md`.
+- **Dynamic 3D Gaussians**: scenes with `train_meta.json`, `test_meta.json`,
+  images in `ims/`, and masks in `seg/`. See `nvs2colmap/dynamic3dgs/README.md`.
 
 ## Supported Datasets
 
@@ -20,6 +22,10 @@ Utilities for converting novel view synthesis datasets to COLMAP format.
   [liuyubian/Robo360](https://huggingface.co/datasets/liuyubian/Robo360),
   paper
   [Robo360: A 3D Omnispective Multi-Material Robotic Manipulation Dataset](https://arxiv.org/abs/2312.06686).
+- **Dynamic 3D Gaussians**: dataset
+  [JonathonLuiten/Dynamic3DGaussians](https://github.com/JonathonLuiten/Dynamic3DGaussians),
+  paper
+  [Dynamic 3D Gaussians: Tracking by Persistent Dynamic View Synthesis](https://arxiv.org/abs/2308.09713).
 
 ## Quick Start
 
@@ -69,9 +75,27 @@ python -m nvs2colmap.n3dv \
   --colmap-use-gpu 1
 ```
 
-By default, decoded frames are written to `frame*/images`, and the command also
-writes `frame*/sparse/0` text models. With `--use-colmap`, decoded frames are
-written to `frame*/input`, and each frame additionally gets the standard
-COLMAP outputs such as `distorted/`, `images/`, `sparse/`, and `stereo/`. When
-`--start-number N` is provided, decoding starts from source video frame `N`, and
-the generated folders/images are also numbered from `N`.
+Link a Dynamic 3D Gaussians scene, including its masks, and write per-frame
+COLMAP text models:
+
+```bash
+python -m nvs2colmap.dynamic3dgs \
+  --path data/basketball \
+  --n-frames 150
+```
+
+For Neural 3D Video scenes, decoded frames are written to `frame*/images` by
+default, and the command also writes `frame*/sparse/0` text models. With
+`--use-colmap`, decoded frames are written to `frame*/input`, and each frame
+additionally gets the standard COLMAP outputs such as `distorted/`, `images/`,
+`sparse/`, and `stereo/`. When `--start-number N` is provided, decoding starts
+from source video frame `N`, and the generated folders/images are also numbered
+from `N`.
+
+For Dynamic 3D Gaussians scenes, images from both `train_meta.json` and
+`test_meta.json` are hardlinked into `frame*/images`, and included masks are
+hardlinked into `frame*/image_masks` (`cam01.jpg` pairs with `cam01.jpg.png`).
+`--no-train-camera` and `--no-test-camera` drop one split. The same
+`--use-colmap` switch writes images to `frame*/input` and runs COLMAP.
+`--start-number` uses the same 1-based output numbering; source file
+`000000.jpg` is frame `1`.
