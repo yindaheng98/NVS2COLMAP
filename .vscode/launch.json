@@ -60,7 +60,18 @@
             "console": "integratedTerminal",
             "args": [
                 "--path",
-                "${workspaceFolder}/data/point_odyssey/robot"
+                "${workspaceFolder}/data/point_odyssey/robot",
+                "--start-number",
+                "61",
+                "--n-frames",
+                "60",
+                "--ffmpeg",
+                ".\\data\\ffmpeg.exe",
+                "--ffprobe",
+                ".\\data\\ffprobe.exe",
+                "--use-colmap",
+                "--colmap-executable",
+                ".\\data\\colmap\\COLMAP.bat"
             ]
         }
     ]
