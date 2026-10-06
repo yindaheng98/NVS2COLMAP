@@ -15,6 +15,7 @@ def main() -> None:
     parser.add_argument("--cameras", type=json.loads, required=True)
     parser.add_argument("--start-number", type=int, default=1)
     parser.add_argument("--n-frames", type=int)
+    parser.add_argument("--frame-step", type=int, default=1)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
 
     scene = bpy.context.scene
@@ -37,6 +38,7 @@ def main() -> None:
     scene.frame_start += args.start_number - 1
     if args.n_frames is not None:
         scene.frame_end = min(scene.frame_end, scene.frame_start + args.n_frames - 1)
+    scene.frame_step = args.frame_step
 
     for name, height, width, focal, c2w in args.cameras:
         scene.render.resolution_x = width

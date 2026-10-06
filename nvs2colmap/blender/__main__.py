@@ -19,6 +19,7 @@ def main() -> None:
     parser.add_argument("--blender", default="blender", help="Blender executable.")
     parser.add_argument("--n-frames", type=int, help="Number of frames to render. Defaults to the rest of the scene.")
     parser.add_argument("--start-number", type=int, default=1, help="1-based scene frame to start rendering from.")
+    parser.add_argument("--frame-step", type=int, default=1, help="Render every Nth frame. 1 renders every frame, 2 renders one and skips one.")
     args = parser.parse_args()
 
     folder = args.path.absolute()
@@ -50,6 +51,8 @@ def main() -> None:
             json.dumps(cameras, separators=(",", ":")),
             "--start-number",
             str(args.start_number),
+            "--frame-step",
+            str(args.frame_step),
             *(["--n-frames", str(args.n_frames)] if args.n_frames is not None else []),
         ],
         check=True,
