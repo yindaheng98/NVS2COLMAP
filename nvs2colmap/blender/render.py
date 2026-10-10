@@ -40,6 +40,9 @@ def main() -> None:
         scene.frame_end = min(scene.frame_end, scene.frame_start + args.n_frames - 1)
     scene.frame_step = args.frame_step
     scene.render.fps_base *= args.frame_step
+    # Video frame i (1-based) is this Blender frame.
+    frames = list(range(scene.frame_start, scene.frame_end + 1, scene.frame_step))
+    (args.output / "blender_frames.json").write_text(json.dumps(frames) + "\n")
 
     for name, height, width, focal, c2w in args.cameras:
         scene.render.resolution_x = width

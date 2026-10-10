@@ -44,14 +44,12 @@
             "args": [
                 "--path",
                 "${workspaceFolder}/data/point_odyssey/robot",
-                "--n-frames",
-                "60",
-                "--start-number",
-                "61",
                 "--blend",
                 "${workspaceFolder}/data/point_odyssey/data/demo_scene/robot.blend",
                 "--blender",
-                "C:/Program Files (x86)/Steam/steamapps/common/Blender/blender.exe"
+                "C:/Program Files (x86)/Steam/steamapps/common/Blender/blender.exe",
+                "--frame-step",
+                "3",
             ]
         },
         {

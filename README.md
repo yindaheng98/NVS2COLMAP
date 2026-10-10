@@ -10,6 +10,9 @@ Utilities for converting novel view synthesis datasets to COLMAP format.
   file per camera. See `nvs2colmap/n3dv/README.md`.
 - **Dynamic 3D Gaussians**: scenes with `train_meta.json`, `test_meta.json`,
   images in `ims/`, and masks in `seg/`. See `nvs2colmap/dynamic3dgs/README.md`.
+- **Blender**: a `.blend` file rendered into that Neural 3D Video layout, with
+  `blender_frames.json` recording the Blender timeline frame of each video
+  frame. See `nvs2colmap/blender/README.md`.
 
 ## Supported Datasets
 
@@ -90,6 +93,17 @@ python -m nvs2colmap.dynamic3dgs \
   --n-frames 150
 ```
 
+Render a `.blend` file into camera videos next to an existing
+`poses_bounds.npy`. `blender` must be on `PATH`, or pass the executable with
+`--blender`:
+
+```bash
+python -m nvs2colmap.blender \
+  --path data/robot \
+  --blend robot.blend \
+  --frame-step 3
+```
+
 For Neural 3D Video scenes, decoded frames are written to `frame*/images` by
 default, and the command also writes `frame*/sparse/0` text models. With
 `--use-colmap`, decoded frames are written to `frame*/input`, and each frame
@@ -109,3 +123,13 @@ does not write `init_pt_cld.npz` into `sparse/0/points3D.ply`; the
 reconstructed points stay in `distorted/sparse/0` and the undistorted
 `sparse/`. `--start-number` uses the same 1-based output numbering; source
 file `000000.jpg` is frame `1`.
+
+For Blender scenes, rendering writes one video per camera beside
+`poses_bounds.npy`, plus `blender_frames.json` in that same directory. The
+file is a JSON list of Blender timeline frame numbers in render order. Video
+frame `i` (1-based) is Blender frame `blender_frames[i - 1]`.
+`--start-number` selects the first scene frame and `--frame-step` keeps every
+Nth frame; the list is those frames after the `.blend` range is applied. With
+`--frame-step 3` on a scene whose first frame is 1, the file begins
+`[1, 4, 7, ...]`. Decoding the videos with `python -m nvs2colmap.n3dv` numbers
+`frame*` folders by video frame, so `frameK` is `blender_frames[K - 1]`.
