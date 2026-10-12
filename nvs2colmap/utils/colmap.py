@@ -23,6 +23,9 @@ def feature_extractor(folder, use_gpu="1", colmap_executable="colmap"):
         "--SiftExtraction.use_gpu", use_gpu,
         "--ImageReader.single_camera_per_image", "1",
     ]
+    feature_mask_dir = os.path.join(folder, "feature_mask")
+    if os.path.isdir(feature_mask_dir):
+        cmd += ["--ImageReader.mask_path", feature_mask_dir]
     return execute(cmd)
 
 
@@ -95,6 +98,7 @@ def model_converter_bin(folder, colmap_executable="colmap"):
 
 
 def image_undistorter(folder, colmap_executable="colmap"):
+    shutil.rmtree(os.path.join(folder, "images"), ignore_errors=True)
     cmd = [
         colmap_executable, "image_undistorter",
         "--image_path", os.path.join(folder, "input"),
@@ -108,41 +112,41 @@ def image_undistorter(folder, colmap_executable="colmap"):
 def mask_undistorter(folder, image_names, colmap_executable="colmap"):
     folder = Path(folder)
     image_names = [Path(name) for name in image_names]
-    tmp_mask = folder / "tmp_mask"
-    shutil.rmtree(tmp_mask, ignore_errors=True)
-    linked = False
+    if not (folder / "input_mask").is_dir():
+        return 0
+    shutil.rmtree(folder / "tmp_mask", ignore_errors=True)
+    exists = False
     for image_name in image_names:
         src = folder / "input_mask" / image_name.with_name(image_name.name + ".png")
-        if not src.is_file():
+        dst = folder / "tmp_mask" / image_name
+        if not src.exists():
             continue
-        dst = tmp_mask / image_name
         dst.parent.mkdir(parents=True, exist_ok=True)
         os.link(src, dst)
-        linked = True
-    if not linked:
-        shutil.rmtree(tmp_mask, ignore_errors=True)
+        exists = True
+    if not exists:
+        shutil.rmtree(folder / "tmp_mask", ignore_errors=True)
         return 0
-    tmp_sparse = folder / "tmp_mask_sparse"
-    shutil.rmtree(tmp_sparse, ignore_errors=True)
+    shutil.rmtree(folder / "tmp_mask_sparse", ignore_errors=True)
     ret = execute([
         colmap_executable, "image_undistorter",
-        "--image_path", os.fspath(tmp_mask),
+        "--image_path", os.fspath(folder / "tmp_mask"),
         "--input_path", os.fspath(folder / "distorted" / "sparse" / "0"),
-        "--output_path", os.fspath(tmp_sparse),
+        "--output_path", os.fspath(folder / "tmp_mask_sparse"),
         "--output_type=COLMAP",
     ])
-    shutil.rmtree(tmp_mask, ignore_errors=True)
+    shutil.rmtree(folder / "tmp_mask", ignore_errors=True)
     if ret != 0:
-        shutil.rmtree(tmp_sparse, ignore_errors=True)
+        shutil.rmtree(folder / "tmp_mask_sparse", ignore_errors=True)
         return ret
     for image_name in image_names:
-        src = tmp_sparse / "images" / image_name
-        if not src.is_file():
-            continue
+        src = folder / "tmp_mask_sparse" / "images" / image_name
         dst = folder / "image_masks" / image_name.with_name(image_name.name + ".png")
+        if not src.exists():
+            continue
         dst.parent.mkdir(parents=True, exist_ok=True)
         if dst.exists():
             dst.unlink()
         os.link(src, dst)
-    shutil.rmtree(tmp_sparse, ignore_errors=True)
+    shutil.rmtree(folder / "tmp_mask_sparse", ignore_errors=True)
     return 0

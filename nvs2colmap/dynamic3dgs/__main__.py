@@ -130,7 +130,6 @@ def main() -> None:
             image_extension="",
             colmap_executable=args.colmap_executable,
             use_gpu=args.colmap_use_gpu,
-            has_mask=True,
         )
 
     print(f"Done: {folder}")
