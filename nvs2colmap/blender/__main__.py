@@ -17,9 +17,9 @@ def main() -> None:
     parser.add_argument("--path", type=Path, required=True, help="Scene directory containing poses_bounds.npy.")
     parser.add_argument("--blend", type=Path, required=True, help="Blender file to render.")
     parser.add_argument("--blender", default="blender", help="Blender executable.")
-    parser.add_argument("--n-frames", type=int, help="Number of frames to render. Defaults to the rest of the scene.")
-    parser.add_argument("--start-number", type=int, default=1, help="1-based scene frame to start rendering from.")
-    parser.add_argument("--frame-step", type=int, default=1, help="Render every Nth frame. 1 renders every frame, 2 renders one and skips one.")
+    parser.add_argument("--frame_start", type=int, default=0, help="First Blender frame to render.")
+    parser.add_argument("--frame_end", type=int, help="Last Blender frame to render. Defaults to the .blend scene.")
+    parser.add_argument("--frame_step", type=int, help="Render every Nth Blender frame. Defaults to the .blend scene.")
     args = parser.parse_args()
 
     folder = args.path.absolute()
@@ -49,11 +49,10 @@ def main() -> None:
             str(folder),
             "--cameras",
             json.dumps(cameras, separators=(",", ":")),
-            "--start-number",
-            str(args.start_number),
-            "--frame-step",
-            str(args.frame_step),
-            *(["--n-frames", str(args.n_frames)] if args.n_frames is not None else []),
+            "--frame_start",
+            str(args.frame_start),
+            *(["--frame_end", str(args.frame_end)] if args.frame_end is not None else []),
+            *(["--frame_step", str(args.frame_step)] if args.frame_step is not None else []),
         ],
         check=True,
     )

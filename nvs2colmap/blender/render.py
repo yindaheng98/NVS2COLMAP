@@ -13,9 +13,9 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--cameras", type=json.loads, required=True)
-    parser.add_argument("--start-number", type=int, default=1)
-    parser.add_argument("--n-frames", type=int)
-    parser.add_argument("--frame-step", type=int, default=1)
+    parser.add_argument("--frame_start", type=int, default=0)
+    parser.add_argument("--frame_end", type=int)
+    parser.add_argument("--frame_step", type=int)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
 
     scene = bpy.context.scene
@@ -35,11 +35,12 @@ def main() -> None:
     scene.render.ffmpeg.constant_rate_factor = "MEDIUM"
     scene.render.ffmpeg.audio_codec = "NONE"
     scene.render.use_file_extension = False
-    scene.frame_start += args.start_number - 1
-    if args.n_frames is not None:
-        scene.frame_end = min(scene.frame_end, scene.frame_start + args.n_frames - 1)
-    scene.frame_step = args.frame_step
-    scene.render.fps_base *= args.frame_step
+    scene.frame_start = args.frame_start
+    if args.frame_end is not None:
+        scene.frame_end = args.frame_end
+    if args.frame_step is not None:
+        scene.render.fps_base *= args.frame_step / scene.frame_step
+        scene.frame_step = args.frame_step
     # Video frame i (1-based) is this Blender frame.
     frames = list(range(scene.frame_start, scene.frame_end + 1, scene.frame_step))
     (args.output / "blender_frames.json").write_text(json.dumps(frames) + "\n")

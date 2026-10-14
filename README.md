@@ -101,7 +101,7 @@ Render a `.blend` file into camera videos next to an existing
 python -m nvs2colmap.blender \
   --path data/robot \
   --blend robot.blend \
-  --frame-step 3
+  --frame_step 3
 ```
 
 For Neural 3D Video scenes, decoded frames are written to `frame*/images` by
@@ -128,8 +128,7 @@ For Blender scenes, rendering writes one video per camera beside
 `poses_bounds.npy`, plus `blender_frames.json` in that same directory. The
 file is a JSON list of Blender timeline frame numbers in render order. Video
 frame `i` (1-based) is Blender frame `blender_frames[i - 1]`.
-`--start-number` selects the first scene frame and `--frame-step` keeps every
-Nth frame; the list is those frames after the `.blend` range is applied. With
-`--frame-step 3` on a scene whose first frame is 1, the file begins
-`[1, 4, 7, ...]`. Decoding the videos with `python -m nvs2colmap.n3dv` numbers
-`frame*` folders by video frame, so `frameK` is `blender_frames[K - 1]`.
+`--frame_start` defaults to `0`. `--frame_end` and `--frame_step` default to
+the `.blend` timeline. With `--frame_step 3`, the file begins `[0, 3, 6, ...]`.
+Decoding the videos with `python -m nvs2colmap.n3dv` numbers `frame*` folders
+by video frame, so `frameK` is `blender_frames[K - 1]`.
