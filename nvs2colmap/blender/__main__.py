@@ -17,7 +17,7 @@ def main() -> None:
     parser.add_argument("--path", type=Path, required=True, help="Scene directory containing poses_bounds.npy.")
     parser.add_argument("--blend", type=Path, required=True, help="Blender file to render.")
     parser.add_argument("--blender", default="blender", help="Blender executable.")
-    parser.add_argument("--frame_start", type=int, default=0, help="First Blender frame to render.")
+    parser.add_argument("--frame_start", type=int, default=1, help="First Blender frame to render.")
     parser.add_argument("--frame_end", type=int, help="Last Blender frame to render. Defaults to the .blend scene.")
     parser.add_argument("--frame_step", type=int, help="Render every Nth Blender frame. Defaults to the .blend scene.")
     args = parser.parse_args()

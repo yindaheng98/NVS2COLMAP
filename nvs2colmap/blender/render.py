@@ -13,7 +13,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--cameras", type=json.loads, required=True)
-    parser.add_argument("--frame_start", type=int, default=0)
+    parser.add_argument("--frame_start", type=int, default=1)
     parser.add_argument("--frame_end", type=int)
     parser.add_argument("--frame_step", type=int)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])

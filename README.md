@@ -128,7 +128,7 @@ For Blender scenes, rendering writes one video per camera beside
 `poses_bounds.npy`, plus `blender_frames.json` in that same directory. The
 file is a JSON list of Blender timeline frame numbers in render order. Video
 frame `i` (1-based) is Blender frame `blender_frames[i - 1]`.
-`--frame_start` defaults to `0`. `--frame_end` and `--frame_step` default to
-the `.blend` timeline. With `--frame_step 3`, the file begins `[0, 3, 6, ...]`.
+`--frame_start` defaults to `1`. `--frame_end` and `--frame_step` default to
+the `.blend` timeline. With `--frame_step 3`, the file begins `[1, 4, 7, ...]`.
 Decoding the videos with `python -m nvs2colmap.n3dv` numbers `frame*` folders
 by video frame, so `frameK` is `blender_frames[K - 1]`.
