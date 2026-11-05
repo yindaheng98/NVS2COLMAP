@@ -194,7 +194,7 @@ python -m nvs2colmap.stnerf \
   --path data/taekwondo \
   --n-frames 101 \
   --use-colmap \
-  --colmap-executable colmap \
+  --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
   --colmap-use-gpu 1
 ```
 

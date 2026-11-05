@@ -318,7 +318,7 @@ python -m nvs2colmap.n3dv \
   --video-extension MP4 \
   --n-frames 1 \
   --use-colmap \
-  --colmap-executable data/colmap/COLMAP.bat \
+  --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
   --colmap-use-gpu 1
 ```
 

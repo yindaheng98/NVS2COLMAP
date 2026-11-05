@@ -153,7 +153,7 @@ python -m nvs2colmap.dynamic3dgs \
   --path data/basketball \
   --n-frames 150 \
   --use-colmap \
-  --colmap-executable colmap \
+  --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
   --colmap-use-gpu 1
 ```
 

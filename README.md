@@ -65,16 +65,14 @@ Install COLMAP from conda-forge:
 conda install -c conda-forge colmap
 ```
 
-The `colmap` executable is installed into the conda environment. Activate
-that environment before a `--use-colmap` run. Activation puts `colmap` on
-`PATH` and loads the shared libraries the executable links against. A Python
-virtualenv such as `.venv` can be activated afterwards so its `python` stays
-first on `PATH`.
+The `colmap` executable is `${CONDA_EXE%/bin/conda}/bin/colmap`. It loads
+shared libraries from the conda `lib` directory next to that binary, so pass
+this path to `--colmap-executable`.
 
 For Neural 3D Video scenes, pass `data/ffmpeg` and `data/ffprobe`, or put
 `ffmpeg` and `ffprobe` on `PATH`. To run the COLMAP reconstruction that
 [InstantSplat](https://github.com/yindaheng98/InstantSplat) continues from,
-pass `--colmap-executable colmap` after the conda environment is active.
+pass `--colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap"`.
 
 Extract a Neural 3D Video scene and write per-frame COLMAP text models for
 [InstantSplat](https://github.com/yindaheng98/InstantSplat):
@@ -102,7 +100,6 @@ Run COLMAP reconstruction and undistortion for each frame, for
 [InstantSplat](https://github.com/yindaheng98/InstantSplat):
 
 ```bash
-conda activate
 python -m nvs2colmap.n3dv \
   --path data/Robo360/xarm6_gold_rope_in_basket_2 \
   --ffmpeg ffmpeg \
@@ -110,7 +107,7 @@ python -m nvs2colmap.n3dv \
   --video-extension MP4 \
   --n-frames 1 \
   --use-colmap \
-  --colmap-executable colmap \
+  --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
   --colmap-use-gpu 1
 ```
 

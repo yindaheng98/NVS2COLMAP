@@ -256,7 +256,7 @@ python -m nvs2colmap.SiggraphAsia2026VVC \
   --path data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1 \
   --n-frames 1 \
   --use-colmap \
-  --colmap-executable colmap \
+  --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
   --colmap-use-gpu 1
 ```
 
