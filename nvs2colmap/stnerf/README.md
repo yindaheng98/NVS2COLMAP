@@ -29,15 +29,11 @@ pip install numpy torch
 ## Quick Start
 
 SharePoint does not publish a direct file URL. Visit the sharing link once to
-store a guest cookie, then download each archive with that cookie. Remove only
-the scene directories these archives will replace, and overwrite the zip files
-in `data/` if they already exist. Hardlink each zip into its scene directory.
-The conversion command finds that one zip and extracts `pose/` plus
-`frame*/images`. Point clouds, labels, and background meshes stay in the zip.
-`boxing.zip` has no `pose/`, so it is only downloaded and linked.
+store a guest cookie, then download each archive with that cookie. Overwrite
+the zip files in `data/` if they already exist. Those zip files stay as
+downloaded:
 
 ```bash
-rm -rf data/boxing data/taekwondo data/walking
 mkdir -p data
 cookie=$(mktemp)
 share='https://hkustconnect-my.sharepoint.com/:f:/g/personal/xliufe_connect_ust_hk/EjqArjZxmmtDplj_IrwlUq0BMUyG69zr5YqXFBxgku4rRQ?e=n2fSBs'
@@ -50,6 +46,15 @@ curl -c "$cookie" -b "$cookie" -L -o data/taekwondo.zip \
 curl -c "$cookie" -b "$cookie" -L -o data/walking.zip \
   "${base}%2Fpersonal%2Fxliufe_connect_ust_hk%2FDocuments%2Fst-nerf%2Fwalking.zip"
 rm -f "$cookie"
+```
+
+Remove only the scene directories these archives will replace, then hardlink
+each zip into its scene directory. The conversion command finds that one zip
+and extracts `pose/` plus `frame*/images`. Point clouds, labels, and background
+meshes stay in the zip. `boxing.zip` has no `pose/`, so it is only linked:
+
+```bash
+rm -rf data/boxing data/taekwondo data/walking
 mkdir -p data/boxing data/taekwondo data/walking
 ln data/boxing.zip data/boxing/boxing.zip
 ln data/taekwondo.zip data/taekwondo/taekwondo.zip

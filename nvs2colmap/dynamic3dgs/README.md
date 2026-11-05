@@ -20,15 +20,20 @@ pip install numpy plyfile torch
 
 ## Quick Start
 
-The official archive already contains a top-level `data/` directory. Remove only
-the scenes this archive will replace, overwrite `data/data.zip` if it already
-exists, and extract from the repository root so the scenes land at `data/boxes`,
-`data/basketball`, and the other sequence folders:
+The official archive already contains a top-level `data/` directory. Overwrite
+`data/data.zip` if it already exists. That zip stays as downloaded:
+
+```bash
+mkdir -p data
+wget -O data/data.zip https://omnomnom.vision.rwth-aachen.de/data/Dynamic3DGaussians/data.zip
+```
+
+Remove only the scenes this archive will replace, then extract from the
+repository root so the scenes land at `data/boxes`, `data/basketball`, and the
+other sequence folders:
 
 ```bash
 rm -rf data/basketball data/boxes data/football data/juggle data/softball data/tennis
-mkdir -p data
-wget -O data/data.zip https://omnomnom.vision.rwth-aachen.de/data/Dynamic3DGaussians/data.zip
 unzip data/data.zip
 ```
 

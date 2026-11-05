@@ -31,11 +31,8 @@ pip install -U huggingface_hub
 Each scene is one tar. `curl` pipes it into `tar`, so the archive is not stored.
 The archive keeps its scene directory, so the files land at
 `data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1.tar/004_1_seq1`.
-`cp -al` then hardlinks every file into
-`data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1`. Remove only that
-directory, then hardlink again. That deletes generated frames and leaves the
-extracted files in the `.tar` directory. `release_manifest.json` lists the
-public views.
+Those `.tar` directories stay as downloaded. `release_manifest.json` lists the
+public views. The held-out camera package is downloaded here and unpacked below.
 
 ```bash
 mkdir -p \
@@ -92,6 +89,9 @@ The held-out package is small and has camera YAML and no images.
 List the archive first. The transforms drop a leading `SiggraphAisa2026VVC/`
 prefix when it is present, and insert `.tar` before the scene directory, so
 `004_1_seq1/test_intri.yml` lands at `004_1_seq1.tar/004_1_seq1/test_intri.yml`.
+Hardlink every extracted file into the scene directory passed to `--path`.
+Remove only those scene directories first. That deletes generated frames and
+leaves the files in the `.tar` directories.
 
 ```bash
 tar -tf data/SiggraphAsia2026VVC/heldout_test_cameras/SiggraphAisa2026VVC_heldout_test_cameras.tar | head
@@ -99,12 +99,6 @@ tar -xf data/SiggraphAsia2026VVC/heldout_test_cameras/SiggraphAisa2026VVC_heldou
   -C data/SiggraphAsia2026VVC \
   --transform 's,^SiggraphAisa2026VVC/,,' \
   --transform 's,\([^/]*\)/\([^/]*\)$,\1.tar/\1/\2,'
-```
-
-Hardlink every extracted file into the scene directory passed to `--path`.
-Remove only those scene directories first. The `.tar` directories stay.
-
-```bash
 rm -rf \
   data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1 \
   data/SiggraphAsia2026VVC/siga/compression/test/006_1_seq1 \

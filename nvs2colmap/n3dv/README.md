@@ -29,15 +29,12 @@ The command also needs `ffmpeg` and `ffprobe` on `PATH`, or explicit paths via
 
 ## Quick Start - Neural 3D Video
 
-Each official archive contains one scene directory. Remove only the scenes
-these archives will replace, overwrite the zip files in `data/` if they already
-exist, and extract with `-d data` so the scenes land at `data/coffee_martini`,
-`data/cook_spinach`, and the other sequence folders. `flame_salmon_1` is
-published as a split archive; `zip -F` rebuilds `data/flame_salmon_1.zip`
-before extraction.
+Each official archive contains one scene directory. Overwrite the zip files in
+`data/` if they already exist. Those files stay as downloaded.
+`flame_salmon_1` is published as the split archive `flame_salmon_1_split.zip`
+plus `flame_salmon_1_split.z01` through `flame_salmon_1_split.z03`:
 
 ```bash
-rm -rf data/coffee_martini data/cook_spinach data/cut_roasted_beef data/flame_salmon_1 data/flame_steak data/sear_steak
 mkdir -p data
 wget -O data/coffee_martini.zip https://github.com/facebookresearch/Neural_3D_Video/releases/download/v1.0/coffee_martini.zip
 wget -O data/cook_spinach.zip https://github.com/facebookresearch/Neural_3D_Video/releases/download/v1.0/cook_spinach.zip
@@ -48,6 +45,15 @@ wget -O data/flame_salmon_1_split.zip https://github.com/facebookresearch/Neural
 wget -O data/flame_salmon_1_split.z01 https://github.com/facebookresearch/Neural_3D_Video/releases/download/v1.0/flame_salmon_1_split.z01
 wget -O data/flame_salmon_1_split.z02 https://github.com/facebookresearch/Neural_3D_Video/releases/download/v1.0/flame_salmon_1_split.z02
 wget -O data/flame_salmon_1_split.z03 https://github.com/facebookresearch/Neural_3D_Video/releases/download/v1.0/flame_salmon_1_split.z03
+```
+
+Remove only the scenes these archives will replace. `zip -F` rebuilds
+`data/flame_salmon_1.zip` from the split archive, then extract with `-d data`
+so the scenes land at `data/coffee_martini`, `data/cook_spinach`, and the
+other sequence folders:
+
+```bash
+rm -rf data/coffee_martini data/cook_spinach data/cut_roasted_beef data/flame_salmon_1 data/flame_steak data/sear_steak
 (
   cd data
   zip -F flame_salmon_1_split.zip --out flame_salmon_1.zip
@@ -78,9 +84,8 @@ The Meet Room release is four zip archives on ModelScope,
 `discussion.zip`, `trimming.zip`, `stepin.zip`, and `vrheadset.zip`, about
 1.1 GB together. Each archive contains one scene directory. ModelScope asks
 for an SDK token from the
-[access-token page](https://modelscope.cn/my/myaccesstoken). Remove only the
-scenes these archives will replace, overwrite the zip files in `data/` if
-they already exist, and extract with `-d data`.
+[access-token page](https://modelscope.cn/my/myaccesstoken). Overwrite the zip
+files in `data/` if they already exist. Those zip files stay as downloaded.
 
 The StreamRF README also links a
 [Google Drive folder](https://drive.google.com/drive/folders/1lNmQ6_ykyKjT6UKy-SnqWoSlI5yjh3l_).
@@ -91,11 +96,17 @@ archives above.
 ```bash
 pip install modelscope
 modelscope login --token <SDK token>
-rm -rf data/discussion data/trimming data/stepin data/vrheadset
 mkdir -p data
 modelscope download --dataset DAMOXR/dynamic_nerf_meeting_room_dataset \
   discussion.zip trimming.zip stepin.zip vrheadset.zip \
   --local_dir data
+```
+
+Remove only the scenes these archives will replace, then extract with
+`-d data`:
+
+```bash
+rm -rf data/discussion data/trimming data/stepin data/vrheadset
 unzip -d data data/discussion.zip
 unzip -d data data/trimming.zip
 unzip -d data data/stepin.zip
