@@ -1,9 +1,12 @@
 # Siggraph Asia 2026 Volumetric Video Challenge
 
 This package converts scenes from the **Siggraph Asia 2026 Volumetric Video
-Challenge** into per-frame COLMAP outputs. By default it hardlinks the dataset
-images, hardlinks included masks, and writes COLMAP text models. With
-`--use-colmap`, it runs the full COLMAP pipeline on every extracted frame.
+Challenge** into per-frame COLMAP outputs. By default it writes COLMAP text
+models. Views whose distortion is zero are hardlinked. Views with a nonzero
+`D_<view>` keep a hardlink of the original in `input/`. COLMAP's
+`image_undistorter` writes `images/` and a `PINHOLE` model fitted to that
+image. Included masks follow the images. With `--use-colmap`, it runs the full
+COLMAP pipeline on every extracted frame.
 
 ## Supported Datasets
 
@@ -71,9 +74,10 @@ tar -xf data/SiggraphAsia2026VVC/heldout_test_cameras/SiggraphAisa2026VVC_heldou
   -C data/SiggraphAsia2026VVC
 ```
 
-Link images and masks, then write COLMAP text models. `siga` frames are
-numbered from `000000`. `selfcap` releases `000900.jpg` through `001799.jpg`,
-so those commands pass `--start-number 901`.
+Link images and masks, then write COLMAP text models. The default run starts
+at the first frame file. `siga` frames begin at `000000.jpg`, which is
+`frame1`. `selfcap` releases `000900.jpg` through `001799.jpg`, so the first
+output directory is `frame901`.
 
 ```bash
 python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1
@@ -90,12 +94,12 @@ python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/siga/sp
 python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/siga/sparse/test/011_0_seq0
 python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/siga/sparse/val/001_1_seq0
 python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/siga/sparse/val/012_0_seq0
-python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/selfcap/compression/test/0512_bike --start-number 901
-python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/selfcap/compression/test/0525_corgi --start-number 901
-python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/selfcap/compression/test/0811_yoga --start-number 901
-python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/selfcap/sparse/test/0512_bike --start-number 901
-python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/selfcap/sparse/test/0525_corgi --start-number 901
-python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/selfcap/sparse/test/0811_yoga --start-number 901
+python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/selfcap/compression/test/0512_bike
+python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/selfcap/compression/test/0525_corgi
+python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/selfcap/compression/test/0811_yoga
+python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/selfcap/sparse/test/0512_bike
+python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/selfcap/sparse/test/0525_corgi
+python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/selfcap/sparse/test/0811_yoga
 ```
 
 ## Dataset Format
@@ -151,8 +155,10 @@ Each YAML pair stores:
   used when `R_<view>` is absent.
 - `T_<view>`: world-to-camera translation. The pose is already in the COLMAP
   camera convention.
-- `D_<view>`: distortion coefficients. The converter writes a `PINHOLE` model
-  from `K_<view>`.
+- `D_<view>`: OpenCV distortion coefficients. A zero vector is ignored and the
+  image is hardlinked. A nonzero vector is written into an `OPENCV` model, and
+  COLMAP undistorts `input/` into `images/`. The saved camera is the resulting
+  `PINHOLE` model.
 
 `t_offsets.json` stores a per-view time offset. The converter leaves it out of
 the COLMAP files. `pcds/` is optional. `pcds/000000.ply` is a shared init
@@ -161,37 +167,44 @@ frame.
 
 ## Output Format
 
-In the default mode, each frame directory contains hardlinked images,
-hardlinked masks, and a COLMAP text model:
+In the default mode, each frame directory contains images, any masks, and a
+COLMAP text model. Zero-distortion images and masks are hardlinks. A scene with
+nonzero distortion also keeps the original files:
 
 ```text
-004_1_seq1/
-  frame1/
+0512_bike/
+  frame901/
+    input/
+      0002.jpg
+      ...
     images/
-      00.jpg
-      01.jpg
+      0002.jpg
+      ...
+    input_mask/
+      0002.jpg.png
       ...
     image_masks/
-      00.jpg.png
-      01.jpg.png
+      0002.jpg.png
       ...
     sparse/0/
       cameras.txt
       images.txt
       points3D.txt
       points3D.ply
-  frame2/
-    ...
 ```
 
-Mask filenames keep the image filename and add `.png`, so `images/00.jpg`
-pairs with `image_masks/00.jpg.png`. A view with no `masks/<view>/` file gets
-an image and no mask. When `pcds/` is missing, `points3D.ply` is omitted.
+`input/` is a hardlink of the source image. `images/` is the file written by
+COLMAP's `image_undistorter`. A zero-distortion scene has no `input/` in the
+default mode; its hardlinks are only in `images/` and `image_masks/`.
+Mask filenames keep the image filename and add `.png`, so `images/0002.jpg`
+pairs with `image_masks/0002.jpg.png`, and `input/0002.jpg` pairs with
+`input_mask/0002.jpg.png`. A view with no `masks/<view>/` file gets an image
+and no mask. When `pcds/` is missing, `points3D.ply` is omitted.
 `--use-colmap` leaves the reconstructed points in `distorted/sparse/0` and
 does not link `pcds/`.
 
 With `--use-colmap`, images are linked into `frame*/input` and masks into
-`frame*/input_mask` (`input/00.jpg` pairs with `input_mask/00.jpg.png`).
+`frame*/input_mask` (`input/0002.jpg` pairs with `input_mask/0002.jpg.png`).
 Each frame then runs feature extraction, matching, triangulation, mapping,
 `image_undistorter`, and `mask_undistorter`. Undistorted images are written to
 `images/`, and undistorted masks to `image_masks/`.
@@ -219,13 +232,13 @@ python -m nvs2colmap.SiggraphAsia2026VVC \
   --n-frames 20
 ```
 
-Extract the released `selfcap` range, `000900.jpg` through `001799.jpg`:
+`selfcap` sparse scenes such as `0512_bike` have no `masks/` and no
+`test_*.yml`. The released frames are `000900.jpg` through `001799.jpg`, and
+the default command writes `frame901` through `frame1800`:
 
 ```bash
 python -m nvs2colmap.SiggraphAsia2026VVC \
-  --path data/SiggraphAsia2026VVC/selfcap/compression/test/0512_bike \
-  --start-number 901 \
-  --n-frames 900
+  --path data/SiggraphAsia2026VVC/selfcap/sparse/test/0512_bike
 ```
 
 Extract only the training cameras:
@@ -266,15 +279,17 @@ python -m nvs2colmap.SiggraphAsia2026VVC \
   `train_extri.yml`.
 - `--no-test-camera`: skip cameras listed in `test_intri.yml` and
   `test_extri.yml`.
-- `--start-number`: 1-based source frame index to start from, default `1`.
-  Output `frame%d` folders use the same numbering. Source file `000000.jpg`
-  is frame `1`, and `000900.jpg` is frame `901`.
+- `--start-number`: 1-based source frame index to start from. The default is
+  the first frame file in `images/`. Output `frame%d` folders use that same
+  numbering. Source file `000000.jpg` is frame `1`, and `000900.jpg` is frame
+  `901`.
 - `--skip-frame-linking`: keep existing frame images and masks, and skip
-  hardlinking. In the default mode this reuses `frame*/images`; with
-  `--use-colmap` it reuses `frame*/input`.
+  hardlinking and the distortion undistortion. A zero-distortion scene reuses
+  `frame*/images`, or `frame*/input` with `--use-colmap`. A scene with nonzero
+  distortion reuses `frame*/input` and the `images/` already written by COLMAP.
 - `--use-colmap`: run the full COLMAP pipeline instead of only writing
   `sparse/0` text models.
-- `--colmap-executable`: path to the COLMAP executable used with
-  `--use-colmap`.
+- `--colmap-executable`: path to the COLMAP executable. Nonzero distortion uses
+  it for `image_undistorter`, and `--use-colmap` uses it for the full pipeline.
 - `--colmap-use-gpu`: whether COLMAP SIFT extraction and matching should use
   GPU, default `1`.

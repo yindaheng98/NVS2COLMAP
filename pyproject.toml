@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nvs2colmap"
-version = "0.6.0"
+version = "0.7.0"
 description = "Utilities for converting novel view synthesis datasets to COLMAP format."
 readme = "README.md"
 authors = [{ name = "Howard Yin", email = "yindaheng98@gmail.com" }]
@@ -45,6 +45,7 @@ Issues = "https://github.com/yindaheng98/NVS2COLMAP/issues"
 nvs2colmap-extract-videos = "nvs2colmap.extract_videos:main"
 nvs2colmap-n3dv = "nvs2colmap.n3dv.__main__:main"
 nvs2colmap-dynamic3dgs = "nvs2colmap.dynamic3dgs.__main__:main"
+nvs2colmap-siggraphasia2026vvc = "nvs2colmap.SiggraphAsia2026VVC.__main__:main"
 nvs2colmap-stnerf = "nvs2colmap.stnerf.__main__:main"
 nvs2colmap-blender = "nvs2colmap.blender.__main__:main"
 nvs2colmap-sample-cameras = "nvs2colmap.blender.sample_cameras:main"

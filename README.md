@@ -13,6 +13,12 @@ Utilities for converting novel view synthesis datasets to COLMAP format.
 - **Blender**: a `.blend` file rendered into that Neural 3D Video layout, with
   `blender_frames.json` recording the Blender timeline frame of each video
   frame. See `nvs2colmap/blender/README.md`.
+- **ST-NeRF**: scenes with `pose/K.txt`, `pose/RT_c2w.txt`, and one
+  `frame*/images` folder per frame. The released `boxing` archive has no
+  `pose/`. See `nvs2colmap/stnerf/README.md`.
+- **Siggraph Asia 2026 VVC**: scenes with `images/<view>/<frame>`,
+  `train_intri.yml`, and `train_extri.yml`. See
+  `nvs2colmap/SiggraphAsia2026VVC/README.md`.
 
 ## Supported Datasets
 
@@ -31,6 +37,12 @@ Utilities for converting novel view synthesis datasets to COLMAP format.
   [JonathonLuiten/Dynamic3DGaussians](https://github.com/JonathonLuiten/Dynamic3DGaussians),
   paper
   [Dynamic 3D Gaussians: Tracking by Persistent Dynamic View Synthesis](https://arxiv.org/abs/2308.09713).
+- **ST-NeRF**: code
+  [DarlingHang/ST-NeRF](https://github.com/DarlingHang/ST-NeRF),
+  paper
+  [Editable Free-Viewpoint Video using a Layered Neural Representation](https://arxiv.org/abs/2104.14786).
+- **Siggraph Asia 2026 VVC**: dataset
+  [zju3dv/SiggraphAsia2026VVC](https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC).
 
 ## Quick Start
 
@@ -53,10 +65,16 @@ Install COLMAP from conda-forge:
 conda install -c conda-forge colmap
 ```
 
+The `colmap` executable is installed into the conda environment. Activate
+that environment before a `--use-colmap` run. Activation puts `colmap` on
+`PATH` and loads the shared libraries the executable links against. A Python
+virtualenv such as `.venv` can be activated afterwards so its `python` stays
+first on `PATH`.
+
 For Neural 3D Video scenes, pass `data/ffmpeg` and `data/ffprobe`, or put
 `ffmpeg` and `ffprobe` on `PATH`. To run the COLMAP reconstruction that
 [InstantSplat](https://github.com/yindaheng98/InstantSplat) continues from,
-pass the conda `colmap` executable via `--colmap-executable`.
+pass `--colmap-executable colmap` after the conda environment is active.
 
 Extract a Neural 3D Video scene and write per-frame COLMAP text models for
 [InstantSplat](https://github.com/yindaheng98/InstantSplat):
@@ -84,6 +102,7 @@ Run COLMAP reconstruction and undistortion for each frame, for
 [InstantSplat](https://github.com/yindaheng98/InstantSplat):
 
 ```bash
+conda activate
 python -m nvs2colmap.n3dv \
   --path data/Robo360/xarm6_gold_rope_in_basket_2 \
   --ffmpeg ffmpeg \
@@ -91,7 +110,7 @@ python -m nvs2colmap.n3dv \
   --video-extension MP4 \
   --n-frames 1 \
   --use-colmap \
-  --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
+  --colmap-executable colmap \
   --colmap-use-gpu 1
 ```
 
@@ -103,6 +122,26 @@ COLMAP text models for
 python -m nvs2colmap.dynamic3dgs \
   --path data/basketball \
   --n-frames 150
+```
+
+Write per-frame COLMAP text models for an ST-NeRF scene. The scene must
+contain `pose/K.txt` and `pose/RT_c2w.txt`:
+
+```bash
+python -m nvs2colmap.stnerf \
+  --path data/taekwondo \
+  --n-frames 101
+```
+
+Link a Siggraph Asia 2026 VVC scene and write per-frame COLMAP text models
+for [InstantSplat](https://github.com/yindaheng98/InstantSplat). The default
+starts at the first frame file, so `selfcap` `000900.jpg` is `frame901`:
+
+```bash
+python -m nvs2colmap.SiggraphAsia2026VVC \
+  --path data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1
+python -m nvs2colmap.SiggraphAsia2026VVC \
+  --path data/SiggraphAsia2026VVC/selfcap/sparse/test/0512_bike
 ```
 
 Render a `.blend` file into camera videos next to an existing
@@ -136,6 +175,20 @@ reconstructed points stay in `distorted/sparse/0` and the undistorted
 `sparse/`. `--start-number` uses the same 1-based output numbering; source
 file `000000.jpg` is frame `1`.
 
+For Siggraph Asia 2026 VVC scenes, images from `train_intri.yml` /
+`train_extri.yml` and, when present, `test_intri.yml` / `test_extri.yml` are
+placed in `frame*/images`. Included masks go in `frame*/image_masks`
+(`0002.jpg` pairs with `0002.jpg.png`). A zero `D_<view>` is hardlinked. A
+nonzero `D_<view>` hardlinks the original into `frame*/input`. COLMAP's
+`image_undistorter` writes `frame*/images` and a `PINHOLE` model in
+`sparse/0`. A shared `pcds/000000.ply` is hardlinked to `sparse/0/points3D.ply`
+in every extracted frame. `--use-colmap` writes images to `frame*/input` and
+masks to `frame*/input_mask`, then runs COLMAP undistortion into `images/` and
+`image_masks/` for
+[InstantSplat](https://github.com/yindaheng98/InstantSplat). The default
+starts at the first frame file. Source file `000000.jpg` is frame `1`, and
+`000900.jpg` is frame `901`.
+
 For Blender scenes, rendering writes one video per camera beside
 `poses_bounds.npy`, plus `blender_frames.json` in that same directory. The
 file is a JSON list of Blender timeline frame numbers in render order. Video
@@ -144,3 +197,11 @@ frame `i` (1-based) is Blender frame `blender_frames[i - 1]`.
 the `.blend` timeline. With `--frame_step 3`, the file begins `[1, 4, 7, ...]`.
 Decoding the videos with `python -m nvs2colmap.n3dv` numbers `frame*` folders
 by video frame, so `frameK` is `blender_frames[K - 1]`.
+
+For ST-NeRF scenes, the scene directory holds one zip file. The default
+command extracts images to `frame*/images` and writes `frame*/sparse/0` text
+models from `pose/K.txt` and `pose/RT_c2w.txt`. `--use-colmap` extracts images
+to `frame*/input`, then undistorts them to `images/` for
+[InstantSplat](https://github.com/yindaheng98/InstantSplat). A scene without
+`pose/` raises an error. `--start-number` uses the same 1-based numbering;
+source directory `frame1` is frame `1`.
