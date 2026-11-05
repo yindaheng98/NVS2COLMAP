@@ -29,33 +29,58 @@ pip install -U huggingface_hub
 ## Quick Start
 
 Each scene is one tar. `curl` pipes it into `tar`, so the archive is not stored.
-`tar` overwrites files already in the scene directory. `release_manifest.json`
-lists the public views.
+The archive keeps its scene directory, so the files land at
+`data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1.tar/004_1_seq1`.
+`cp -al` then hardlinks every file into
+`data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1`. Remove only that
+directory, then hardlink again. That deletes generated frames and leaves the
+extracted files in the `.tar` directory. `release_manifest.json` lists the
+public views.
 
 ```bash
-mkdir -p data/SiggraphAsia2026VVC/siga/{compression,sparse}/{test,val} data/SiggraphAsia2026VVC/selfcap/{compression,sparse}/test
+mkdir -p \
+  data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1.tar \
+  data/SiggraphAsia2026VVC/siga/compression/test/006_1_seq1.tar \
+  data/SiggraphAsia2026VVC/siga/compression/test/007_0_seq1.tar \
+  data/SiggraphAsia2026VVC/siga/compression/test/008_2_seq1.tar \
+  data/SiggraphAsia2026VVC/siga/compression/test/011_0_seq1.tar \
+  data/SiggraphAsia2026VVC/siga/compression/val/001_1_seq0.tar \
+  data/SiggraphAsia2026VVC/siga/compression/val/012_0_seq0.tar \
+  data/SiggraphAsia2026VVC/siga/sparse/test/004_1_seq0.tar \
+  data/SiggraphAsia2026VVC/siga/sparse/test/006_1_seq0.tar \
+  data/SiggraphAsia2026VVC/siga/sparse/test/007_0_seq0.tar \
+  data/SiggraphAsia2026VVC/siga/sparse/test/009_0_seq0.tar \
+  data/SiggraphAsia2026VVC/siga/sparse/test/011_0_seq0.tar \
+  data/SiggraphAsia2026VVC/siga/sparse/val/001_1_seq0.tar \
+  data/SiggraphAsia2026VVC/siga/sparse/val/012_0_seq0.tar \
+  data/SiggraphAsia2026VVC/selfcap/compression/test/0512_bike.tar \
+  data/SiggraphAsia2026VVC/selfcap/compression/test/0525_corgi.tar \
+  data/SiggraphAsia2026VVC/selfcap/compression/test/0811_yoga.tar \
+  data/SiggraphAsia2026VVC/selfcap/sparse/test/0512_bike.tar \
+  data/SiggraphAsia2026VVC/selfcap/sparse/test/0525_corgi.tar \
+  data/SiggraphAsia2026VVC/selfcap/sparse/test/0811_yoga.tar
 hf auth login
 hf download zju3dv/SiggraphAsia2026VVC --type dataset --local-dir data/SiggraphAsia2026VVC --include "license.txt" --include "checksums.sha256" --include "release_manifest.json" --include "archive_manifest.json" --include "heldout_test_cameras/*"
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/compression/test/004_1_seq1.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/compression/test
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/compression/test/006_1_seq1.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/compression/test
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/compression/test/007_0_seq1.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/compression/test
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/compression/test/008_2_seq1.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/compression/test
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/compression/test/011_0_seq1.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/compression/test
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/compression/val/001_1_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/compression/val
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/compression/val/012_0_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/compression/val
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/sparse/test/004_1_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/sparse/test
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/sparse/test/006_1_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/sparse/test
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/sparse/test/007_0_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/sparse/test
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/sparse/test/009_0_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/sparse/test
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/sparse/test/011_0_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/sparse/test
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/sparse/val/001_1_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/sparse/val
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/sparse/val/012_0_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/sparse/val
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/selfcap/compression/test/0512_bike.tar | tar -xf - -C data/SiggraphAsia2026VVC/selfcap/compression/test
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/selfcap/compression/test/0525_corgi.tar | tar -xf - -C data/SiggraphAsia2026VVC/selfcap/compression/test
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/selfcap/compression/test/0811_yoga.tar | tar -xf - -C data/SiggraphAsia2026VVC/selfcap/compression/test
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/selfcap/sparse/test/0512_bike.tar | tar -xf - -C data/SiggraphAsia2026VVC/selfcap/sparse/test
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/selfcap/sparse/test/0525_corgi.tar | tar -xf - -C data/SiggraphAsia2026VVC/selfcap/sparse/test
-curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/selfcap/sparse/test/0811_yoga.tar | tar -xf - -C data/SiggraphAsia2026VVC/selfcap/sparse/test
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/compression/test/004_1_seq1.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/compression/test/006_1_seq1.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/compression/test/006_1_seq1.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/compression/test/007_0_seq1.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/compression/test/007_0_seq1.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/compression/test/008_2_seq1.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/compression/test/008_2_seq1.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/compression/test/011_0_seq1.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/compression/test/011_0_seq1.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/compression/val/001_1_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/compression/val/001_1_seq0.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/compression/val/012_0_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/compression/val/012_0_seq0.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/sparse/test/004_1_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/sparse/test/004_1_seq0.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/sparse/test/006_1_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/sparse/test/006_1_seq0.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/sparse/test/007_0_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/sparse/test/007_0_seq0.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/sparse/test/009_0_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/sparse/test/009_0_seq0.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/sparse/test/011_0_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/sparse/test/011_0_seq0.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/sparse/val/001_1_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/sparse/val/001_1_seq0.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/siga/sparse/val/012_0_seq0.tar | tar -xf - -C data/SiggraphAsia2026VVC/siga/sparse/val/012_0_seq0.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/selfcap/compression/test/0512_bike.tar | tar -xf - -C data/SiggraphAsia2026VVC/selfcap/compression/test/0512_bike.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/selfcap/compression/test/0525_corgi.tar | tar -xf - -C data/SiggraphAsia2026VVC/selfcap/compression/test/0525_corgi.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/selfcap/compression/test/0811_yoga.tar | tar -xf - -C data/SiggraphAsia2026VVC/selfcap/compression/test/0811_yoga.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/selfcap/sparse/test/0512_bike.tar | tar -xf - -C data/SiggraphAsia2026VVC/selfcap/sparse/test/0512_bike.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/selfcap/sparse/test/0525_corgi.tar | tar -xf - -C data/SiggraphAsia2026VVC/selfcap/sparse/test/0525_corgi.tar
+curl -fL -H "Authorization: Bearer $(hf auth token)" https://huggingface.co/datasets/zju3dv/SiggraphAsia2026VVC/resolve/main/selfcap/sparse/test/0811_yoga.tar | tar -xf - -C data/SiggraphAsia2026VVC/selfcap/sparse/test/0811_yoga.tar
 ```
 
 Each archive starts with the scene directory, for example `004_1_seq1/images/`.
@@ -63,15 +88,85 @@ Each archive starts with the scene directory, for example `004_1_seq1/images/`.
 
 The held-out package is small and has camera YAML and no images.
 `heldout_test_cameras/checksums.sha256` checks that archive. Extract it so
-`test_intri.yml` and `test_extri.yml` land in each scene directory. List the
-archive first. When the first path component is `siga/` or `selfcap/`, extract
-at the dataset root. When it is `SiggraphAisa2026VVC/`, add
-`--strip-components=1`.
+`test_intri.yml` and `test_extri.yml` land in each `.tar` scene directory.
+List the archive first. The transforms drop a leading `SiggraphAisa2026VVC/`
+prefix when it is present, and insert `.tar` before the scene directory, so
+`004_1_seq1/test_intri.yml` lands at `004_1_seq1.tar/004_1_seq1/test_intri.yml`.
 
 ```bash
 tar -tf data/SiggraphAsia2026VVC/heldout_test_cameras/SiggraphAisa2026VVC_heldout_test_cameras.tar | head
 tar -xf data/SiggraphAsia2026VVC/heldout_test_cameras/SiggraphAisa2026VVC_heldout_test_cameras.tar \
-  -C data/SiggraphAsia2026VVC
+  -C data/SiggraphAsia2026VVC \
+  --transform 's,^SiggraphAisa2026VVC/,,' \
+  --transform 's,\([^/]*\)/\([^/]*\)$,\1.tar/\1/\2,'
+```
+
+Hardlink every extracted file into the scene directory passed to `--path`.
+Remove only those scene directories first. The `.tar` directories stay.
+
+```bash
+rm -rf \
+  data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1 \
+  data/SiggraphAsia2026VVC/siga/compression/test/006_1_seq1 \
+  data/SiggraphAsia2026VVC/siga/compression/test/007_0_seq1 \
+  data/SiggraphAsia2026VVC/siga/compression/test/008_2_seq1 \
+  data/SiggraphAsia2026VVC/siga/compression/test/011_0_seq1 \
+  data/SiggraphAsia2026VVC/siga/compression/val/001_1_seq0 \
+  data/SiggraphAsia2026VVC/siga/compression/val/012_0_seq0 \
+  data/SiggraphAsia2026VVC/siga/sparse/test/004_1_seq0 \
+  data/SiggraphAsia2026VVC/siga/sparse/test/006_1_seq0 \
+  data/SiggraphAsia2026VVC/siga/sparse/test/007_0_seq0 \
+  data/SiggraphAsia2026VVC/siga/sparse/test/009_0_seq0 \
+  data/SiggraphAsia2026VVC/siga/sparse/test/011_0_seq0 \
+  data/SiggraphAsia2026VVC/siga/sparse/val/001_1_seq0 \
+  data/SiggraphAsia2026VVC/siga/sparse/val/012_0_seq0 \
+  data/SiggraphAsia2026VVC/selfcap/compression/test/0512_bike \
+  data/SiggraphAsia2026VVC/selfcap/compression/test/0525_corgi \
+  data/SiggraphAsia2026VVC/selfcap/compression/test/0811_yoga \
+  data/SiggraphAsia2026VVC/selfcap/sparse/test/0512_bike \
+  data/SiggraphAsia2026VVC/selfcap/sparse/test/0525_corgi \
+  data/SiggraphAsia2026VVC/selfcap/sparse/test/0811_yoga
+mkdir -p \
+  data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1 \
+  data/SiggraphAsia2026VVC/siga/compression/test/006_1_seq1 \
+  data/SiggraphAsia2026VVC/siga/compression/test/007_0_seq1 \
+  data/SiggraphAsia2026VVC/siga/compression/test/008_2_seq1 \
+  data/SiggraphAsia2026VVC/siga/compression/test/011_0_seq1 \
+  data/SiggraphAsia2026VVC/siga/compression/val/001_1_seq0 \
+  data/SiggraphAsia2026VVC/siga/compression/val/012_0_seq0 \
+  data/SiggraphAsia2026VVC/siga/sparse/test/004_1_seq0 \
+  data/SiggraphAsia2026VVC/siga/sparse/test/006_1_seq0 \
+  data/SiggraphAsia2026VVC/siga/sparse/test/007_0_seq0 \
+  data/SiggraphAsia2026VVC/siga/sparse/test/009_0_seq0 \
+  data/SiggraphAsia2026VVC/siga/sparse/test/011_0_seq0 \
+  data/SiggraphAsia2026VVC/siga/sparse/val/001_1_seq0 \
+  data/SiggraphAsia2026VVC/siga/sparse/val/012_0_seq0 \
+  data/SiggraphAsia2026VVC/selfcap/compression/test/0512_bike \
+  data/SiggraphAsia2026VVC/selfcap/compression/test/0525_corgi \
+  data/SiggraphAsia2026VVC/selfcap/compression/test/0811_yoga \
+  data/SiggraphAsia2026VVC/selfcap/sparse/test/0512_bike \
+  data/SiggraphAsia2026VVC/selfcap/sparse/test/0525_corgi \
+  data/SiggraphAsia2026VVC/selfcap/sparse/test/0811_yoga
+cp -al data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1.tar/004_1_seq1/. data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1/
+cp -al data/SiggraphAsia2026VVC/siga/compression/test/006_1_seq1.tar/006_1_seq1/. data/SiggraphAsia2026VVC/siga/compression/test/006_1_seq1/
+cp -al data/SiggraphAsia2026VVC/siga/compression/test/007_0_seq1.tar/007_0_seq1/. data/SiggraphAsia2026VVC/siga/compression/test/007_0_seq1/
+cp -al data/SiggraphAsia2026VVC/siga/compression/test/008_2_seq1.tar/008_2_seq1/. data/SiggraphAsia2026VVC/siga/compression/test/008_2_seq1/
+cp -al data/SiggraphAsia2026VVC/siga/compression/test/011_0_seq1.tar/011_0_seq1/. data/SiggraphAsia2026VVC/siga/compression/test/011_0_seq1/
+cp -al data/SiggraphAsia2026VVC/siga/compression/val/001_1_seq0.tar/001_1_seq0/. data/SiggraphAsia2026VVC/siga/compression/val/001_1_seq0/
+cp -al data/SiggraphAsia2026VVC/siga/compression/val/012_0_seq0.tar/012_0_seq0/. data/SiggraphAsia2026VVC/siga/compression/val/012_0_seq0/
+cp -al data/SiggraphAsia2026VVC/siga/sparse/test/004_1_seq0.tar/004_1_seq0/. data/SiggraphAsia2026VVC/siga/sparse/test/004_1_seq0/
+cp -al data/SiggraphAsia2026VVC/siga/sparse/test/006_1_seq0.tar/006_1_seq0/. data/SiggraphAsia2026VVC/siga/sparse/test/006_1_seq0/
+cp -al data/SiggraphAsia2026VVC/siga/sparse/test/007_0_seq0.tar/007_0_seq0/. data/SiggraphAsia2026VVC/siga/sparse/test/007_0_seq0/
+cp -al data/SiggraphAsia2026VVC/siga/sparse/test/009_0_seq0.tar/009_0_seq0/. data/SiggraphAsia2026VVC/siga/sparse/test/009_0_seq0/
+cp -al data/SiggraphAsia2026VVC/siga/sparse/test/011_0_seq0.tar/011_0_seq0/. data/SiggraphAsia2026VVC/siga/sparse/test/011_0_seq0/
+cp -al data/SiggraphAsia2026VVC/siga/sparse/val/001_1_seq0.tar/001_1_seq0/. data/SiggraphAsia2026VVC/siga/sparse/val/001_1_seq0/
+cp -al data/SiggraphAsia2026VVC/siga/sparse/val/012_0_seq0.tar/012_0_seq0/. data/SiggraphAsia2026VVC/siga/sparse/val/012_0_seq0/
+cp -al data/SiggraphAsia2026VVC/selfcap/compression/test/0512_bike.tar/0512_bike/. data/SiggraphAsia2026VVC/selfcap/compression/test/0512_bike/
+cp -al data/SiggraphAsia2026VVC/selfcap/compression/test/0525_corgi.tar/0525_corgi/. data/SiggraphAsia2026VVC/selfcap/compression/test/0525_corgi/
+cp -al data/SiggraphAsia2026VVC/selfcap/compression/test/0811_yoga.tar/0811_yoga/. data/SiggraphAsia2026VVC/selfcap/compression/test/0811_yoga/
+cp -al data/SiggraphAsia2026VVC/selfcap/sparse/test/0512_bike.tar/0512_bike/. data/SiggraphAsia2026VVC/selfcap/sparse/test/0512_bike/
+cp -al data/SiggraphAsia2026VVC/selfcap/sparse/test/0525_corgi.tar/0525_corgi/. data/SiggraphAsia2026VVC/selfcap/sparse/test/0525_corgi/
+cp -al data/SiggraphAsia2026VVC/selfcap/sparse/test/0811_yoga.tar/0811_yoga/. data/SiggraphAsia2026VVC/selfcap/sparse/test/0811_yoga/
 ```
 
 Link images and masks, then write COLMAP text models. The default run starts
