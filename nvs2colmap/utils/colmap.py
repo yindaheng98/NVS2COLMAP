@@ -1,5 +1,6 @@
 """COLMAP command helpers."""
 
+import filecmp
 import os
 import shutil
 import sqlite3
@@ -20,7 +21,7 @@ def feature_extractor(folder, use_gpu="1", colmap_executable="colmap"):
         "--database_path", os.path.join(folder, "distorted", "database.db"),
         "--image_path", os.path.join(folder, "input"),
         "--ImageReader.camera_model", "PINHOLE",
-        "--SiftExtraction.use_gpu", use_gpu,
+        "--FeatureExtraction.use_gpu", use_gpu,
         "--ImageReader.single_camera_per_image", "1",
     ]
     feature_mask_dir = os.path.join(folder, "feature_mask")
@@ -33,7 +34,7 @@ def exhaustive_matcher(folder, use_gpu="1", colmap_executable="colmap"):
     cmd = [
         colmap_executable, "exhaustive_matcher",
         "--database_path", os.path.join(folder, "distorted", "database.db"),
-        "--SiftMatching.use_gpu", use_gpu,
+        "--FeatureMatching.use_gpu", use_gpu,
     ]
     return execute(cmd)
 
@@ -97,6 +98,27 @@ def model_converter_bin(folder, colmap_executable="colmap"):
     return execute(cmd)
 
 
+def link_identical_files(source_dir, output_dir) -> None:
+    """Replace output copies that match their source files with hardlinks."""
+    source_dir = Path(source_dir)
+    output_dir = Path(output_dir)
+    if not source_dir.is_dir() or not output_dir.is_dir():
+        return
+    for output in output_dir.rglob("*"):
+        if not output.is_file():
+            continue
+        source = source_dir / output.relative_to(output_dir)
+        if not source.is_file() or source.samefile(output):
+            continue
+        if not filecmp.cmp(source, output, shallow=False):
+            continue
+        temporary = output.with_name(output.name + ".linktmp")
+        if temporary.exists():
+            temporary.unlink()
+        os.link(source, temporary)
+        os.replace(temporary, output)
+
+
 def image_undistorter(folder, colmap_executable="colmap"):
     shutil.rmtree(os.path.join(folder, "images"), ignore_errors=True)
     cmd = [
@@ -106,7 +128,10 @@ def image_undistorter(folder, colmap_executable="colmap"):
         "--output_path", folder,
         "--output_type=COLMAP",
     ]
-    return execute(cmd)
+    return_code = execute(cmd)
+    if return_code == 0:
+        link_identical_files(Path(folder) / "input", Path(folder) / "images")
+    return return_code
 
 
 def mask_undistorter(folder, image_names, colmap_executable="colmap"):
@@ -148,5 +173,6 @@ def mask_undistorter(folder, image_names, colmap_executable="colmap"):
         if dst.exists():
             dst.unlink()
         os.link(src, dst)
+    link_identical_files(folder / "input_mask", folder / "image_masks")
     shutil.rmtree(folder / "tmp_mask_sparse", ignore_errors=True)
     return 0

@@ -69,6 +69,12 @@ The `colmap` executable is `${CONDA_EXE%/bin/conda}/bin/colmap`. It loads
 shared libraries from the conda `lib` directory next to that binary, so pass
 this path to `--colmap-executable`.
 
+`--use-colmap` hardcodes the COLMAP 3.13 option names
+`--FeatureExtraction.use_gpu` and `--FeatureMatching.use_gpu`. COLMAP 3.12 and
+earlier only accept `--SiftExtraction.use_gpu` and `--SiftMatching.use_gpu`,
+and exit with `unrecognised option '--SiftExtraction.use_gpu'`. Install COLMAP
+3.13 or newer.
+
 For Neural 3D Video scenes, pass `data/ffmpeg` and `data/ffprobe`, or put
 `ffmpeg` and `ffprobe` on `PATH`. To run the COLMAP reconstruction that
 [InstantSplat](https://github.com/yindaheng98/InstantSplat) continues from,
