@@ -12,12 +12,6 @@ import torch
 from nvs2colmap.utils import matrix_to_quaternion
 from nvs2colmap.write_model import CameraModel
 
-_MATRIX_KEY = re.compile(r"^([A-Za-z0-9_]+):\s*!!opencv-matrix\s*$")
-_SCALAR_KEY = re.compile(r"^([A-Za-z0-9_]+):\s*([-+0-9.eE]+)\s*$")
-_LIST_KEY = re.compile(r"^([A-Za-z0-9_]+):\s*$")
-_LIST_ITEM = re.compile(r"""^-\s+["']?(.*?)["']?\s*$""")
-
-
 @dataclass(frozen=True)
 class ParsedCamera:
     """One static camera and the source image for every frame index."""
@@ -38,95 +32,51 @@ def parse_opencv_yaml(path: Path) -> dict:
         index += 1
         if not line or line.startswith("%") or line == "---" or line.startswith("#"):
             continue
-        matrix_match = _MATRIX_KEY.match(line)
+        matrix_match = re.match(r"^([A-Za-z0-9_]+):\s*!!opencv-matrix\s*$", line)
         if matrix_match:
-            matrix, index = _read_matrix(lines, index)
-            values[matrix_match.group(1)] = matrix
+            rows = cols = None
+            data: list[float] = []
+            while index < len(lines):
+                item = lines[index].strip()
+                if item.startswith("rows:"):
+                    rows = int(item.split(":", 1)[1])
+                    index += 1
+                elif item.startswith("cols:"):
+                    cols = int(item.split(":", 1)[1])
+                    index += 1
+                elif item.startswith("dt:"):
+                    index += 1
+                elif item.startswith("data:"):
+                    buffer = item.split(":", 1)[1]
+                    index += 1
+                    while buffer.count("[") > buffer.count("]") and index < len(lines):
+                        buffer += lines[index]
+                        index += 1
+                    start = buffer.index("[") + 1
+                    end = buffer.rindex("]")
+                    data = [float(value) for value in buffer[start:end].split(",") if value.strip()]
+                    break
+                else:
+                    break
+            if rows is None or cols is None or len(data) != rows * cols:
+                raise ValueError(f"Incomplete OpenCV matrix {matrix_match.group(1)} in {path}")
+            values[matrix_match.group(1)] = np.asarray(data, dtype=np.float64).reshape(rows, cols)
             continue
-        if _LIST_KEY.match(line) and index < len(lines) and lines[index].strip().startswith("-"):
-            key = _LIST_KEY.match(line).group(1)
+        list_match = re.match(r"^([A-Za-z0-9_]+):\s*$", line)
+        if list_match and index < len(lines) and lines[index].strip().startswith("-"):
             items = []
             while index < len(lines):
-                item_match = _LIST_ITEM.match(lines[index].strip())
+                item_match = re.match(r"""^-\s+["']?(.*?)["']?\s*$""", lines[index].strip())
                 if not item_match:
                     break
                 items.append(item_match.group(1))
                 index += 1
-            values[key] = items
+            values[list_match.group(1)] = items
             continue
-        scalar_match = _SCALAR_KEY.match(line)
+        scalar_match = re.match(r"^([A-Za-z0-9_]+):\s*([-+0-9.eE]+)\s*$", line)
         if scalar_match:
             values[scalar_match.group(1)] = float(scalar_match.group(2))
     return values
-
-
-def _read_matrix(lines: list[str], index: int) -> tuple[np.ndarray, int]:
-    rows = cols = None
-    data: list[float] = []
-    while index < len(lines):
-        item = lines[index].strip()
-        if item.startswith("rows:"):
-            rows = int(item.split(":", 1)[1])
-            index += 1
-        elif item.startswith("cols:"):
-            cols = int(item.split(":", 1)[1])
-            index += 1
-        elif item.startswith("dt:"):
-            index += 1
-        elif item.startswith("data:"):
-            buffer = item.split(":", 1)[1]
-            index += 1
-            while buffer.count("[") > buffer.count("]") and index < len(lines):
-                buffer += lines[index]
-                index += 1
-            start = buffer.index("[") + 1
-            end = buffer.rindex("]")
-            data = [float(value) for value in buffer[start:end].split(",") if value.strip()]
-            break
-        else:
-            break
-    if rows is None or cols is None or len(data) != rows * cols:
-        raise ValueError("Incomplete OpenCV matrix in camera YAML.")
-    return np.asarray(data, dtype=np.float64).reshape(rows, cols), index
-
-
-def rodrigues(rvec: np.ndarray) -> np.ndarray:
-    rvec = np.asarray(rvec, dtype=np.float64).reshape(3)
-    theta = float(np.linalg.norm(rvec))
-    if theta == 0.0:
-        return np.eye(3, dtype=np.float64)
-    axis = rvec / theta
-    kx, ky, kz = axis
-    skew = np.array(
-        [[0.0, -kz, ky], [kz, 0.0, -kx], [-ky, kx, 0.0]],
-        dtype=np.float64,
-    )
-    return np.eye(3) + np.sin(theta) * skew + (1.0 - np.cos(theta)) * (skew @ skew)
-
-
-def rotation_matrix(extri: dict, view: str) -> np.ndarray:
-    return rodrigues(extri[f"R_{view}"])
-
-
-def list_view_frames(view_dir: Path) -> dict[int, Path]:
-    frames = {
-        int(path.stem): path
-        for path in sorted(view_dir.glob("*.jpg"))
-        if path.stem.isdigit()
-    }
-    if not frames:
-        raise FileNotFoundError(f"No frames found in {view_dir}")
-    return frames
-
-
-def distortion_coeffs(values: dict, view: str) -> np.ndarray | None:
-    raw = values.get(f"D_{view}")
-    if raw is None:
-        return None
-    coeffs = np.asarray(raw, dtype=np.float64).reshape(-1)
-    if not np.any(coeffs):
-        return None
-    return coeffs
 
 
 def read_split(
@@ -146,11 +96,32 @@ def read_split(
         view_dir = folder / "images" / view
         if not view_dir.is_dir():
             continue
-        frames = list_view_frames(view_dir)
+        frames = {
+            int(path.stem): path
+            for path in sorted(view_dir.glob("*.jpg"))
+            if path.stem.isdigit()
+        }
+        if not frames:
+            raise FileNotFoundError(f"No frames found in {view_dir}")
         intrinsic = np.asarray(intri[f"K_{view}"], dtype=np.float64).reshape(3, 3)
-        rotation = rotation_matrix(extri, view)
+        rvec = np.asarray(extri[f"R_{view}"], dtype=np.float64).reshape(3)
+        theta = float(np.linalg.norm(rvec))
+        if theta == 0.0:
+            rotation = np.eye(3, dtype=np.float64)
+        else:
+            kx, ky, kz = rvec / theta
+            skew = np.array(
+                [[0.0, -kz, ky], [kz, 0.0, -kx], [-ky, kx, 0.0]],
+                dtype=np.float64,
+            )
+            rotation = np.eye(3) + np.sin(theta) * skew + (1.0 - np.cos(theta)) * (skew @ skew)
         translation = np.asarray(extri[f"T_{view}"], dtype=np.float64).reshape(3)
         quaternion = matrix_to_quaternion(torch.tensor(rotation, dtype=torch.float64))
+        dist = None
+        if f"D_{view}" in intri:
+            coeffs = np.asarray(intri[f"D_{view}"], dtype=np.float64).reshape(-1)
+            if np.any(coeffs):
+                dist = coeffs
         cameras.append(
             ParsedCamera(
                 camera=CameraModel(
@@ -166,7 +137,7 @@ def read_split(
                 ),
                 view=view,
                 frames=frames,
-                dist=distortion_coeffs(intri, view),
+                dist=dist,
             )
         )
     return cameras
