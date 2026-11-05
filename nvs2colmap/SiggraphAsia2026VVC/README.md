@@ -129,41 +129,32 @@ YAML, and optional masks and point clouds:
     000000.ply
 ```
 
-Images are `.jpg` or `.png`. A view keeps one suffix for every frame. Output
-folders count the files on disk from `frame1`, so the first file is `frame1`
-whether its name is `000000.jpg` or `000900.jpg`.
+Frames are `.jpg`. Output folders count those files from `frame1`, so the
+first file is `frame1` whether its name is `000000.jpg` or `000900.jpg`.
 
 `train_intri.yml` and `train_extri.yml` are the training views.
-`test_intri.yml` and `test_extri.yml` are the test views. Public test scenes
-omit the held-out test images and the held-out test camera files. After the
-held-out package is extracted, a test view is written only when
-`images/<view>/` exists. `intri.yml` and `extri.yml` are the released views
-together; the converter reads them when the `train_*.yml` pair is absent.
-
-A view listed in both the train and test YAML is written once. The two records
-must agree. Views are sorted by name, so image `images/00/000000.jpg` becomes
-`00.jpg`.
+`test_intri.yml` and `test_extri.yml` are the test views, and are read when
+those files are present. A view without `images/<view>/` is left out. A view
+listed in both YAML files keeps the training record. Views are sorted by name,
+so `images/00/000000.jpg` becomes `00.jpg`.
 
 Each YAML pair stores:
 
 - `names`: view ids, such as `00` and `01`.
 - `K_<view>`: 3 x 3 intrinsic matrix. `fx`, `fy`, `cx`, and `cy` are read from
   it.
-- `H_<view>`, `W_<view>`: image height and width when they are positive. Zero
-  and negative values mean the size is read from the image file.
-- `R_<view>`: Rodrigues rotation of the world-to-camera pose. `Rot_<view>` is
-  used when `R_<view>` is absent.
+- `H_<view>`, `W_<view>`: image height and width.
+- `R_<view>`: Rodrigues rotation of the world-to-camera pose.
 - `T_<view>`: world-to-camera translation. The pose is already in the COLMAP
   camera convention.
-- `D_<view>`: OpenCV distortion coefficients. A zero vector is ignored and the
-  image is hardlinked. A nonzero vector is written into an `OPENCV` model, and
-  COLMAP undistorts `input/` into `images/`. The saved camera is the resulting
-  `PINHOLE` model.
+- `D_<view>`: OpenCV distortion coefficients `k1 k2 p1 p2 k3`. An all-zero
+  vector is left out. Any other value is written as COLMAP `OPENCV` using
+  `k1 k2 p1 p2`, and COLMAP undistorts `input/` into `images/`. The saved
+  camera is the resulting `PINHOLE` model.
 
 `t_offsets.json` stores a per-view time offset. The converter leaves it out of
-the COLMAP files. `pcds/` is optional. `pcds/000000.ply` is a shared init
-cloud. `pcds/000001.ply` and the other indexed clouds belong to that source
-frame.
+the COLMAP files. `pcds/000000.ply`, when present, is hardlinked to
+`sparse/0/points3D.ply` in every extracted frame.
 
 ## Output Format
 
@@ -280,8 +271,7 @@ python -m nvs2colmap.SiggraphAsia2026VVC \
 - `--no-test-camera`: skip cameras listed in `test_intri.yml` and
   `test_extri.yml`.
 - `--start-number`: 1-based position in the frames on disk, default `1`.
-  Output `frame%d` uses that same count. The first file is `frame1`, including
-  a scene whose first file is `000900.jpg`.
+  Output `frame%d` uses that same count. The first file is `frame1`.
 - `--skip-frame-linking`: keep existing frame images and masks, and skip
   hardlinking and the distortion undistortion. A zero-distortion scene reuses
   `frame*/images`, or `frame*/input` with `--use-colmap`. A scene with nonzero

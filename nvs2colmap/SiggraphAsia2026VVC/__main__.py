@@ -9,7 +9,7 @@ from nvs2colmap.colmap import run_video_colmap
 from nvs2colmap.write_model import write_video_colmap_text_model
 
 from .cameras import read_camera_meta
-from .link_frames import count_frame_dirs, first_frame_number, link_frames, select_frame_indices
+from .link_frames import count_frame_dirs, link_frames, select_frame_indices
 from .points import link_point_clouds
 from .undistort import undistort_frames
 
@@ -38,10 +38,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--start-number",
         type=int,
-        help=(
-            "1-based position in the frames on disk. Defaults to 1, so the first "
-            "file is frame1. 000900.jpg is frame1 when it is the first file."
-        ),
+        default=1,
+        help="1-based position in the frames on disk. The first file is frame1.",
     )
     parser.add_argument(
         "--no-train-camera",
@@ -85,7 +83,7 @@ def parse_args() -> argparse.Namespace:
         parser.error("Cannot set both --no-train-camera and --no-test-camera.")
     if args.n_frames is not None and args.n_frames < 1:
         parser.error("--n-frames must be at least 1.")
-    if args.start_number is not None and args.start_number < 1:
+    if args.start_number < 1:
         parser.error("--start-number must be at least 1.")
     return args
 
@@ -99,21 +97,17 @@ def main() -> None:
         include_train=not args.no_train_camera,
         include_test=not args.no_test_camera,
     )
-    if args.skip_frame_linking:
-        start_number = args.start_number or first_frame_number(folder)
-        n_frames = args.n_frames
-        if n_frames is None:
-            n_frames = count_frame_dirs(folder / "frame%d", start_number=start_number)
-    else:
-        start_number = args.start_number or 1
-        n_frames = args.n_frames
+    start_number = args.start_number
+    n_frames = args.n_frames
+    if args.skip_frame_linking and n_frames is None:
+        n_frames = count_frame_dirs(folder / "frame%d", start_number=start_number)
     frame_indices = select_frame_indices(available_frames, start_number, n_frames)
     output_numbers = list(range(start_number, start_number + len(frame_indices)))
 
     frame_output_pattern = folder / "frame%d"
     distorted = any(camera.dist is not None for camera in cameras)
-    image_dir_name = "input" if args.use_colmap else "images"
-    mask_dir_name = "input_mask" if args.use_colmap else "image_masks"
+    image_dir_name = "input" if args.use_colmap or distorted else "images"
+    mask_dir_name = "input_mask" if args.use_colmap or distorted else "image_masks"
     if not args.skip_frame_linking:
         link_frames(
             folder=folder,
@@ -147,7 +141,6 @@ def main() -> None:
         link_point_clouds(
             folder=folder,
             output_pattern=frame_output_pattern / "sparse" / "0" / "points3D.ply",
-            frame_indices=frame_indices,
             output_numbers=output_numbers,
         )
     else:

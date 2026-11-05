@@ -18,12 +18,8 @@ def camera_model_params(camera: ParsedCamera) -> str:
     base = f"{model.width} {model.height} {model.fx} {model.fy} {model.cx} {model.cy}"
     if camera.dist is None:
         return f"PINHOLE {base}"
-    coeffs = np.asarray(camera.dist, dtype=np.float64).reshape(-1)
-    radial = [float(coeffs[i]) if i < coeffs.size else 0.0 for i in range(8)]
-    k1, k2, p1, p2, k3, k4, k5, k6 = radial
-    if max(abs(k3), abs(k4), abs(k5), abs(k6)) < 1e-12:
-        return f"OPENCV {base} {k1} {k2} {p1} {p2}"
-    return f"FULL_OPENCV {base} {k1} {k2} {p1} {p2} {k3} {k4} {k5} {k6}"
+    k1, k2, p1, p2 = np.asarray(camera.dist, dtype=np.float64).reshape(-1)[:4]
+    return f"OPENCV {base} {k1} {k2} {p1} {p2}"
 
 
 def write_distorted_model(path: Path, cameras: Sequence[ParsedCamera]) -> None:
