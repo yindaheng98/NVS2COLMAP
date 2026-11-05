@@ -65,13 +65,13 @@ def publish_undistorted_model(frame_dir: Path, colmap_executable: str) -> None:
 def undistort_frames(
     frame_pattern: Path,
     cameras: Sequence[ParsedCamera],
-    frame_indices: Sequence[int],
+    output_numbers: Sequence[int],
     colmap_executable: str = "colmap",
 ) -> None:
     frame_pattern = str(frame_pattern)
     image_names = [camera.camera.name for camera in cameras]
-    for frame_index in frame_indices:
-        frame_dir = Path(frame_pattern % (frame_index + 1))
+    for output_number in output_numbers:
+        frame_dir = Path(frame_pattern % output_number)
         write_distorted_model(frame_dir / "distorted" / "sparse" / "0", cameras)
         if image_undistorter(str(frame_dir), colmap_executable=colmap_executable) != 0:
             raise RuntimeError(f"Undistortion failed for {frame_dir}")

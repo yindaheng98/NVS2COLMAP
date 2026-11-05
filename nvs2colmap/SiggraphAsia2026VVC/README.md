@@ -75,9 +75,9 @@ tar -xf data/SiggraphAsia2026VVC/heldout_test_cameras/SiggraphAisa2026VVC_heldou
 ```
 
 Link images and masks, then write COLMAP text models. The default run starts
-at the first frame file. `siga` frames begin at `000000.jpg`, which is
-`frame1`. `selfcap` releases `000900.jpg` through `001799.jpg`, so the first
-output directory is `frame901`.
+at the first frame file and writes `frame1`. `siga` frames begin at
+`000000.jpg`. `selfcap` releases `000900.jpg` through `001799.jpg`, and
+`000900.jpg` is still `frame1`.
 
 ```bash
 python -m nvs2colmap.SiggraphAsia2026VVC --path data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1
@@ -129,9 +129,9 @@ YAML, and optional masks and point clouds:
     000000.ply
 ```
 
-Images are `.jpg` or `.png`. A view keeps one suffix for every frame. The
-frame stem is a zero-padded index, so `000000.jpg` is output frame `1` and
-`000900.jpg` is output frame `901`.
+Images are `.jpg` or `.png`. A view keeps one suffix for every frame. Output
+folders count the files on disk from `frame1`, so the first file is `frame1`
+whether its name is `000000.jpg` or `000900.jpg`.
 
 `train_intri.yml` and `train_extri.yml` are the training views.
 `test_intri.yml` and `test_extri.yml` are the test views. Public test scenes
@@ -173,7 +173,7 @@ nonzero distortion also keeps the original files:
 
 ```text
 0512_bike/
-  frame901/
+  frame1/
     input/
       0002.jpg
       ...
@@ -234,7 +234,7 @@ python -m nvs2colmap.SiggraphAsia2026VVC \
 
 `selfcap` sparse scenes such as `0512_bike` have no `masks/` and no
 `test_*.yml`. The released frames are `000900.jpg` through `001799.jpg`, and
-the default command writes `frame901` through `frame1800`:
+the default command writes them as `frame1` through `frame900`:
 
 ```bash
 python -m nvs2colmap.SiggraphAsia2026VVC \
@@ -279,10 +279,9 @@ python -m nvs2colmap.SiggraphAsia2026VVC \
   `train_extri.yml`.
 - `--no-test-camera`: skip cameras listed in `test_intri.yml` and
   `test_extri.yml`.
-- `--start-number`: 1-based source frame index to start from. The default is
-  the first frame file in `images/`. Output `frame%d` folders use that same
-  numbering. Source file `000000.jpg` is frame `1`, and `000900.jpg` is frame
-  `901`.
+- `--start-number`: 1-based position in the frames on disk, default `1`.
+  Output `frame%d` uses that same count. The first file is `frame1`, including
+  a scene whose first file is `000900.jpg`.
 - `--skip-frame-linking`: keep existing frame images and masks, and skip
   hardlinking and the distortion undistortion. A zero-distortion scene reuses
   `frame*/images`, or `frame*/input` with `--use-colmap`. A scene with nonzero

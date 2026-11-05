@@ -35,31 +35,32 @@ def select_frame_indices(
     start_number: int | None,
     n_frames: int | None,
 ) -> list[int]:
-    available = list(frame_indices)
+    available = sorted(frame_indices)
     if not available:
         raise ValueError("No frames available.")
     if start_number is None:
-        start_number = min(available) + 1
+        start_number = 1
     elif start_number < 1:
         raise ValueError("--start-number is 1-based and must be at least 1.")
-    start_index = start_number - 1
-    if start_index not in available:
+    if start_number > len(available):
         raise FileNotFoundError(
-            "Source frame "
-            f"{start_index:06d} is not in this scene. Frames on disk run from "
-            f"{min(available):06d} to {max(available):06d}; "
-            f"pass --start-number {min(available) + 1} to begin at the first frame."
+            f"--start-number {start_number} is past the {len(available)} frames on disk "
+            f"({available[0]:06d} through {available[-1]:06d})."
         )
-    if n_frames is None:
-        n_frames = max(available) - start_index + 1
-    if n_frames < 1:
-        raise ValueError("--n-frames must be at least 1.")
-    selected = list(range(start_index, start_index + n_frames))
-    missing = [index for index in selected if index not in available]
-    if missing:
+    selected = available[start_number - 1 :]
+    if n_frames is not None:
+        if n_frames > len(selected):
+            raise FileNotFoundError(
+                f"--n-frames {n_frames} runs past the {len(selected)} frames "
+                f"that remain from --start-number {start_number}."
+            )
+        selected = selected[:n_frames]
+    expected = list(range(selected[0], selected[-1] + 1))
+    if selected != expected:
+        missing = next(index for index in expected if index not in selected)
         raise FileNotFoundError(
-            f"Missing source frame {missing[0]:06d}. Frames on disk run from "
-            f"{min(available):06d} to {max(available):06d}."
+            f"Missing source frame {missing:06d}. Frames on disk run from "
+            f"{available[0]:06d} to {available[-1]:06d}."
         )
     return selected
 
@@ -86,14 +87,15 @@ def link_frames(
     frame_pattern: Path,
     cameras: Sequence[ParsedCamera],
     frame_indices: Sequence[int],
+    output_numbers: Sequence[int],
     image_dirname: str = "images",
     mask_dirname: str = "image_masks",
 ) -> None:
     folder = Path(folder)
     frame_pattern = str(frame_pattern)
     distorted = any(camera.dist is not None for camera in cameras)
-    for frame_index in frame_indices:
-        frame_dir = Path(frame_pattern % (frame_index + 1))
+    for frame_index, output_number in zip(frame_indices, output_numbers):
+        frame_dir = Path(frame_pattern % output_number)
         image_dir = frame_dir / image_dirname
         mask_dir = frame_dir / mask_dirname
         for camera in cameras:

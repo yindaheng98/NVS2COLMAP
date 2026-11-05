@@ -132,7 +132,8 @@ python -m nvs2colmap.stnerf \
 
 Link a Siggraph Asia 2026 VVC scene and write per-frame COLMAP text models
 for [InstantSplat](https://github.com/yindaheng98/InstantSplat). The default
-starts at the first frame file, so `selfcap` `000900.jpg` is `frame901`:
+starts at the first frame file and writes `frame1`, including a `selfcap`
+scene whose first file is `000900.jpg`:
 
 ```bash
 python -m nvs2colmap.SiggraphAsia2026VVC \
@@ -183,8 +184,8 @@ in every extracted frame. `--use-colmap` writes images to `frame*/input` and
 masks to `frame*/input_mask`, then runs COLMAP undistortion into `images/` and
 `image_masks/` for
 [InstantSplat](https://github.com/yindaheng98/InstantSplat). The default
-starts at the first frame file. Source file `000000.jpg` is frame `1`, and
-`000900.jpg` is frame `901`.
+starts at the first frame file and writes `frame1`. A scene whose first file
+is `000900.jpg` still begins at `frame1`.
 
 For Blender scenes, rendering writes one video per camera beside
 `poses_bounds.npy`, plus `blender_frames.json` in that same directory. The

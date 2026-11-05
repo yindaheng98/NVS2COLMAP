@@ -39,8 +39,8 @@ def parse_args() -> argparse.Namespace:
         "--start-number",
         type=int,
         help=(
-            "1-based source frame to start from. Defaults to the first frame file. "
-            "Source file 000000.jpg is frame 1, and 000900.jpg is frame 901."
+            "1-based position in the frames on disk. Defaults to 1, so the first "
+            "file is frame1. 000900.jpg is frame1 when it is the first file."
         ),
     )
     parser.add_argument(
@@ -104,9 +104,11 @@ def main() -> None:
         n_frames = args.n_frames
         if n_frames is None:
             n_frames = count_frame_dirs(folder / "frame%d", start_number=start_number)
-        frame_indices = list(range(start_number - 1, start_number - 1 + n_frames))
     else:
-        frame_indices = select_frame_indices(available_frames, args.start_number, args.n_frames)
+        start_number = args.start_number or 1
+        n_frames = args.n_frames
+    frame_indices = select_frame_indices(available_frames, start_number, n_frames)
+    output_numbers = list(range(start_number, start_number + len(frame_indices)))
 
     frame_output_pattern = folder / "frame%d"
     distorted = any(camera.dist is not None for camera in cameras)
@@ -118,20 +120,20 @@ def main() -> None:
             frame_pattern=frame_output_pattern,
             cameras=cameras,
             frame_indices=frame_indices,
+            output_numbers=output_numbers,
             image_dirname=image_dir_name,
             mask_dirname=mask_dir_name,
         )
 
     colmap_cameras = [camera.camera for camera in cameras]
     n_frames = len(frame_indices)
-    start_number = frame_indices[0] + 1
     if not args.use_colmap:
         if distorted:
             if not args.skip_frame_linking:
                 undistort_frames(
                     frame_pattern=frame_output_pattern,
                     cameras=cameras,
-                    frame_indices=frame_indices,
+                    output_numbers=output_numbers,
                     colmap_executable=args.colmap_executable,
                 )
         else:
@@ -146,6 +148,7 @@ def main() -> None:
             folder=folder,
             output_pattern=frame_output_pattern / "sparse" / "0" / "points3D.ply",
             frame_indices=frame_indices,
+            output_numbers=output_numbers,
         )
     else:
         run_video_colmap(

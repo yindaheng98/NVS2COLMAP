@@ -31,13 +31,14 @@ def link_point_clouds(
     folder: Path,
     output_pattern: Path,
     frame_indices: Sequence[int],
+    output_numbers: Sequence[int],
 ) -> None:
     point_clouds = index_point_clouds(folder)
     if not point_clouds:
         return
     output_pattern = str(output_pattern)
-    for frame_index in frame_indices:
+    for frame_index, output_number in zip(frame_indices, output_numbers):
         source = point_cloud_for_frame(point_clouds, frame_index)
         if source is None:
             continue
-        link_file(source, Path(output_pattern % (frame_index + 1)))
+        link_file(source, Path(output_pattern % output_number))
