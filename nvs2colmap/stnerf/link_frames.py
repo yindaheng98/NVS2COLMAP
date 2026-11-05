@@ -1,4 +1,4 @@
-"""Check ST-NeRF frame images and link them into COLMAP input folders."""
+"""Link ST-NeRF frame images into COLMAP input folders."""
 
 from __future__ import annotations
 
@@ -29,21 +29,18 @@ def link_file(src: Path, dst: Path) -> None:
     os.link(src, dst)
 
 
-def prepare_frames(
+def link_frames(
     folder: Path,
+    frame_pattern: Path,
     cameras: Sequence[CameraModel],
     n_frames: int,
     start_number: int = 1,
-    link_to_input: bool = False,
+    image_dirname: str = "input",
 ) -> None:
     folder = Path(folder)
-    for frame in range(start_number, start_number + n_frames):
-        image_dir = folder / f"frame{frame}" / "images"
-        if not image_dir.is_dir():
-            raise FileNotFoundError(f"Missing frame directory: {folder / f'frame{frame}'}")
+    frame_pattern = str(frame_pattern)
+    for offset in range(n_frames):
+        frame_dir = Path(frame_pattern % (start_number + offset))
+        image_dir = frame_dir / image_dirname
         for camera in cameras:
-            src = image_dir / camera.name
-            if not src.is_file():
-                raise FileNotFoundError(f"Missing source image: {src}")
-            if link_to_input:
-                link_file(src, folder / f"frame{frame}" / "input" / camera.name)
+            link_file(frame_dir / "images" / camera.name, image_dir / camera.name)

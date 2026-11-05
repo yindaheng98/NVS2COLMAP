@@ -2,9 +2,10 @@
 
 This package converts scenes in the **ST-NeRF** format into per-frame COLMAP
 outputs. By default it keeps the existing `frame*/images` and writes COLMAP
-text models. With `--use-colmap`, it hardlinks those images into `frame*/input`
-and runs the full COLMAP pipeline on every frame. Both modes require
-`pose/K.txt` and `pose/RT_c2w.txt`. A scene without those files raises an error.
+text models from `pose/K.txt` and `pose/RT_c2w.txt`. With `--use-colmap`, it
+hardlinks those images into `frame*/input` and runs the full COLMAP pipeline
+on every frame. A scene without `pose/K.txt` and `pose/RT_c2w.txt` raises
+an error.
 
 ## Supported Datasets
 
@@ -55,12 +56,11 @@ unzip -d data data/walking.zip 'walking/frame*/images/*' 'walking/pose/*'
 `boxing` has frames `frame1` through `frame71` and cameras `0` through `14`.
 `taekwondo` has frames `frame1` through `frame101` and cameras `0` through `14`.
 `walking` has frames `frame1` through `frame75` and cameras `0` through `15`.
-`boxing.zip` has no `pose/` at all, so its command raises `FileNotFoundError`.
+`boxing.zip` has no `pose/`, so it is only extracted.
 
-Each scene is one command:
+Write COLMAP text models from the released poses:
 
 ```bash
-python -m nvs2colmap.stnerf --path data/boxing --n-frames 71
 python -m nvs2colmap.stnerf --path data/taekwondo --n-frames 101
 python -m nvs2colmap.stnerf --path data/walking --n-frames 75
 ```
@@ -216,7 +216,7 @@ python -m nvs2colmap.stnerf \
 - `--skip-frame-linking`: keep existing frame images and skip the image check.
   With `--use-colmap` this reuses `frame*/input`.
 - `--use-colmap`: run the full COLMAP pipeline instead of only writing
-  `sparse/0` text models. This still requires `pose/`.
+  `sparse/0` text models.
 - `--colmap-executable`: path to the COLMAP executable used with
   `--use-colmap`.
 - `--colmap-use-gpu`: whether COLMAP SIFT extraction and matching should use

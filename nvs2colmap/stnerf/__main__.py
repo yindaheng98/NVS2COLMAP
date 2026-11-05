@@ -8,7 +8,7 @@ from pathlib import Path
 from nvs2colmap.colmap import run_video_colmap
 from nvs2colmap.write_model import write_video_colmap_text_model
 
-from .link_frames import count_frame_dirs, prepare_frames
+from .link_frames import count_frame_dirs, link_frames
 from .pose import read_cameras
 
 
@@ -70,18 +70,16 @@ def main() -> None:
 
     n_frames = args.n_frames
     frame_output_pattern = folder / "frame%d"
-    if not args.skip_frame_linking:
-        if n_frames is None:
-            n_frames = count_frame_dirs(frame_output_pattern, start_number=args.start_number)
-        prepare_frames(
+    if n_frames is None:
+        n_frames = count_frame_dirs(frame_output_pattern, start_number=args.start_number)
+    if not args.skip_frame_linking and args.use_colmap:
+        link_frames(
             folder=folder,
+            frame_pattern=frame_output_pattern,
             cameras=cameras,
             n_frames=n_frames,
             start_number=args.start_number,
-            link_to_input=args.use_colmap,
         )
-    elif n_frames is None:
-        n_frames = count_frame_dirs(frame_output_pattern, start_number=args.start_number)
 
     if not args.use_colmap:
         write_video_colmap_text_model(
