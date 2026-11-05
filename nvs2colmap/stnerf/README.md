@@ -1,11 +1,11 @@
 # ST-NeRF
 
 This package converts scenes in the **ST-NeRF** format into per-frame COLMAP
-outputs. By default it keeps the existing `frame*/images` and writes COLMAP
-text models from `pose/K.txt` and `pose/RT_c2w.txt`. With `--use-colmap`, it
-hardlinks those images into `frame*/input` and runs the full COLMAP pipeline
-on every frame. A scene without `pose/K.txt` and `pose/RT_c2w.txt` raises
-an error.
+outputs. It reads the one zip file in the scene directory. By default it
+extracts images to `frame*/images` and writes COLMAP text models from
+`pose/K.txt` and `pose/RT_c2w.txt`. With `--use-colmap`, it extracts images
+to `frame*/input` and runs the full COLMAP pipeline on every frame. A scene
+without those pose files raises an error.
 
 ## Supported Datasets
 
@@ -30,9 +30,11 @@ pip install numpy torch
 
 SharePoint does not publish a direct file URL. Visit the sharing link once to
 store a guest cookie, then download each archive with that cookie. Remove only
-the scenes these archives will replace, and overwrite the zip files in `data/`
-if they already exist. The `unzip` patterns extract `frame*/images` and
-`pose/`. Point clouds, labels, and background meshes stay in the zip:
+the scene directories these archives will replace, and overwrite the zip files
+in `data/` if they already exist. Hardlink each zip into its scene directory.
+The conversion command finds that one zip and extracts `pose/` plus
+`frame*/images`. Point clouds, labels, and background meshes stay in the zip.
+`boxing.zip` has no `pose/`, so it is only downloaded and linked.
 
 ```bash
 rm -rf data/boxing data/taekwondo data/walking
@@ -48,15 +50,15 @@ curl -c "$cookie" -b "$cookie" -L -o data/taekwondo.zip \
 curl -c "$cookie" -b "$cookie" -L -o data/walking.zip \
   "${base}%2Fpersonal%2Fxliufe_connect_ust_hk%2FDocuments%2Fst-nerf%2Fwalking.zip"
 rm -f "$cookie"
-unzip -d data data/boxing.zip 'boxing/frame*/images/*'
-unzip -d data data/taekwondo.zip 'taekwondo/frame*/images/*' 'taekwondo/pose/*'
-unzip -d data data/walking.zip 'walking/frame*/images/*' 'walking/pose/*'
+mkdir -p data/boxing data/taekwondo data/walking
+ln data/boxing.zip data/boxing/boxing.zip
+ln data/taekwondo.zip data/taekwondo/taekwondo.zip
+ln data/walking.zip data/walking/walking.zip
 ```
 
 `boxing` has frames `frame1` through `frame71` and cameras `0` through `14`.
 `taekwondo` has frames `frame1` through `frame101` and cameras `0` through `14`.
 `walking` has frames `frame1` through `frame75` and cameras `0` through `15`.
-`boxing.zip` has no `pose/`, so it is only extracted.
 
 Write COLMAP text models from the released poses:
 
@@ -121,7 +123,7 @@ so it reads `frame1` through `frame101`.
 
 ## Output Format
 
-In the default mode, source images stay in `frame*/images`. The command adds
+In the default mode, the command extracts images to `frame*/images` and adds
 one COLMAP text model per frame:
 
 ```text
@@ -143,9 +145,9 @@ Image names in the COLMAP files are the source filenames, `0.png`, `1.png`,
 and so on. `points3D.txt` is empty. The quick start leaves labels, point
 clouds, and background meshes inside the zip.
 
-With `--use-colmap`, each requested frame first hardlinks `images/` to
-`input/`. COLMAP then replaces `images/` with the undistorted images and
-writes `distorted/sparse/0`, `sparse/`, and `stereo/`.
+With `--use-colmap`, images are extracted to `frame*/input`. COLMAP then
+writes undistorted images to `images/`, plus `distorted/sparse/0`, `sparse/`,
+and `stereo/`.
 
 ```text
 walking/
@@ -196,25 +198,28 @@ python -m nvs2colmap.stnerf \
   --colmap-use-gpu 1
 ```
 
-Reuse frame images that are already linked into `frame*/input`:
+Reuse frames already extracted from the zip:
 
 ```bash
 python -m nvs2colmap.stnerf \
   --path data/walking \
-  --skip-frame-linking \
+  --skip-zip-extraction \
   --use-colmap
 ```
 
 ## Important Options
 
-- `--path`: scene directory containing `pose/K.txt`, `pose/RT_c2w.txt`, and
-  `frame*/images`.
-- `--n-frames`: number of frames to write. If omitted, consecutive `frame%d`
-  directories are counted from `--start-number`.
+- `--path`: scene directory containing one zip file. With
+  `--skip-zip-extraction`, it contains `pose/` and the extracted frame images.
+- `--n-frames`: number of frames to extract and write. If omitted while
+  extracting, frames run from `--start-number` through the last frame in the
+  zip. If omitted with `--skip-zip-extraction`, frame directories are counted
+  from `frame%d`.
 - `--start-number`: 1-based source frame to start from, default `1`. `frame1`
   is frame `1`.
-- `--skip-frame-linking`: keep existing frame images and skip the image check.
-  With `--use-colmap` this reuses `frame*/input`.
+- `--skip-zip-extraction`: keep existing extracted frames and skip the zip.
+  In the default mode this reuses `frame*/images`; with `--use-colmap` it
+  reuses `frame*/input`.
 - `--use-colmap`: run the full COLMAP pipeline instead of only writing
   `sparse/0` text models.
 - `--colmap-executable`: path to the COLMAP executable used with

@@ -8,7 +8,7 @@ from pathlib import Path
 from nvs2colmap.colmap import run_video_colmap
 from nvs2colmap.write_model import write_video_colmap_text_model
 
-from .link_frames import count_frame_dirs, link_frames
+from .extract import count_frame_dirs, extract_zip
 from .pose import read_cameras
 
 
@@ -23,12 +23,12 @@ def parse_args() -> argparse.Namespace:
         "--path",
         type=Path,
         required=True,
-        help="Scene directory containing pose/K.txt, pose/RT_c2w.txt, and frame*/images.",
+        help="Scene directory containing one zip file, or extracted pose/ and frame images.",
     )
     parser.add_argument(
         "--n-frames",
         type=int,
-        help="Number of frames to write. Defaults to the consecutive frame directories from --start-number.",
+        help="Number of frames to extract and write. Defaults to the frames in the zip when extracting.",
     )
     parser.add_argument(
         "--start-number",
@@ -37,9 +37,9 @@ def parse_args() -> argparse.Namespace:
         help="1-based source frame to start from. frame1 is frame 1.",
     )
     parser.add_argument(
-        "--skip-frame-linking",
+        "--skip-zip-extraction",
         action="store_true",
-        help="Only convert pose files for existing frame folders.",
+        help="Only convert pose files for existing frame folders. Skips reading the zip.",
     )
     parser.add_argument(
         "--use-colmap",
@@ -66,20 +66,21 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     folder = args.path.resolve()
-    cameras = read_cameras(folder, args.start_number)
 
     n_frames = args.n_frames
     frame_output_pattern = folder / "frame%d"
-    if n_frames is None:
-        n_frames = count_frame_dirs(frame_output_pattern, start_number=args.start_number)
-    if not args.skip_frame_linking and args.use_colmap:
-        link_frames(
+    image_dir_name = "input" if args.use_colmap else "images"
+    if not args.skip_zip_extraction:
+        n_frames = extract_zip(
             folder=folder,
-            frame_pattern=frame_output_pattern,
-            cameras=cameras,
-            n_frames=n_frames,
+            image_dirname=image_dir_name,
             start_number=args.start_number,
+            n_frames=n_frames,
         )
+    elif n_frames is None:
+        n_frames = count_frame_dirs(frame_output_pattern, start_number=args.start_number)
+
+    cameras = read_cameras(folder, args.start_number, image_dir_name)
 
     if not args.use_colmap:
         write_video_colmap_text_model(

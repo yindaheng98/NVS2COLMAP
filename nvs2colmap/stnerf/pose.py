@@ -58,21 +58,13 @@ def read_pose(folder: Path) -> tuple[np.ndarray, np.ndarray]:
     return intrinsics, camera_to_world
 
 
-def camera_image(folder: Path, frame: int, name: str) -> Path:
-    for dirname in ("images", "input"):
-        path = folder / f"frame{frame}" / dirname / name
-        if path.is_file():
-            return path
-    raise FileNotFoundError(f"Missing {name} for frame {frame} in {folder}")
-
-
-def read_cameras(folder: Path, start_number: int) -> list[CameraModel]:
+def read_cameras(folder: Path, start_number: int, image_dirname: str = "images") -> list[CameraModel]:
     folder = Path(folder)
     intrinsics, camera_to_world = read_pose(folder)
     cameras = []
     for index, (intrinsic, pose) in enumerate(zip(intrinsics, camera_to_world)):
         name = f"{index}.png"
-        width, height = read_png_size(camera_image(folder, start_number, name))
+        width, height = read_png_size(folder / f"frame{start_number}" / image_dirname / name)
         world_to_camera = np.linalg.inv(pose)
         quaternion = matrix_to_quaternion(torch.tensor(world_to_camera[:3, :3], dtype=torch.float64))
         cameras.append(
