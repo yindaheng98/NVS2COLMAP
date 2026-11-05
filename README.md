@@ -40,11 +40,23 @@ Install the Python runtime dependencies:
 pip install numpy plyfile torch
 ```
 
-For Neural 3D Video scenes, the command also needs `ffmpeg` and `ffprobe` on
-`PATH`, or explicit paths via `--ffmpeg` and `--ffprobe`. To run the COLMAP
-reconstruction that
+Download FFmpeg 7.0.2-static and place `ffmpeg` and `ffprobe` in `data/`:
+
+```bash
+mkdir -p data
+wget -qO- https://johnvansickle.com/ffmpeg/releases/ffmpeg-7.0.2-amd64-static.tar.xz | tar -xJ -C data --strip-components=1 ffmpeg-7.0.2-amd64-static/ffmpeg ffmpeg-7.0.2-amd64-static/ffprobe
+```
+
+Install COLMAP from conda-forge. This puts `colmap` on `PATH`:
+
+```bash
+conda install -c conda-forge colmap
+```
+
+For Neural 3D Video scenes, pass `data/ffmpeg` and `data/ffprobe`, or put
+`ffmpeg` and `ffprobe` on `PATH`. To run the COLMAP reconstruction that
 [InstantSplat](https://github.com/yindaheng98/InstantSplat) continues from,
-also provide a COLMAP executable via `--colmap-executable`.
+pass that `colmap` executable via `--colmap-executable`.
 
 Extract a Neural 3D Video scene and write per-frame COLMAP text models for
 [InstantSplat](https://github.com/yindaheng98/InstantSplat):
