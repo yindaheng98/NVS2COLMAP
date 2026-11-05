@@ -18,6 +18,20 @@ Runtime dependencies:
 pip install numpy plyfile torch
 ```
 
+## Download
+
+The official archive already contains a top-level `data/` directory. Remove only
+the scenes this archive will replace, overwrite `data/data.zip` if it already
+exists, and extract from the repository root so the scenes land at `data/boxes`,
+`data/basketball`, and the other sequence folders:
+
+```bash
+rm -rf data/basketball data/boxes data/football data/juggle data/softball data/tennis
+mkdir -p data
+wget -O data/data.zip https://omnomnom.vision.rwth-aachen.de/data/Dynamic3DGaussians/data.zip
+unzip data/data.zip
+```
+
 ## Dataset Format
 
 A scene folder is expected to contain `train_meta.json`, `test_meta.json`,
