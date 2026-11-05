@@ -18,7 +18,7 @@ Runtime dependencies:
 pip install numpy plyfile torch
 ```
 
-## Download
+## Quick Start
 
 The official archive already contains a top-level `data/` directory. Remove only
 the scenes this archive will replace, overwrite `data/data.zip` if it already
@@ -30,6 +30,17 @@ rm -rf data/basketball data/boxes data/football data/juggle data/softball data/t
 mkdir -p data
 wget -O data/data.zip https://omnomnom.vision.rwth-aachen.de/data/Dynamic3DGaussians/data.zip
 unzip data/data.zip
+```
+
+Link images and masks, then write COLMAP text models. Each scene is one command:
+
+```bash
+python -m nvs2colmap.dynamic3dgs --path data/basketball --n-frames 150
+python -m nvs2colmap.dynamic3dgs --path data/boxes --n-frames 150
+python -m nvs2colmap.dynamic3dgs --path data/football --n-frames 150
+python -m nvs2colmap.dynamic3dgs --path data/juggle --n-frames 150
+python -m nvs2colmap.dynamic3dgs --path data/softball --n-frames 150
+python -m nvs2colmap.dynamic3dgs --path data/tennis --n-frames 150
 ```
 
 ## Dataset Format
