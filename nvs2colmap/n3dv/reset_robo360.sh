@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 rm -rf data/Robo360/batch1/*/frame* data/Robo360/batch2/*/frame*
 python -m nvs2colmap.n3dv --path data/Robo360/batch1/bread_fall "$@"
 python -m nvs2colmap.n3dv --path data/Robo360/batch1/bread_tear "$@"

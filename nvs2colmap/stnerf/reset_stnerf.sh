@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 rm -rf data/boxing data/taekwondo data/walking
 mkdir -p data/boxing data/taekwondo data/walking
 ln data/boxing.zip data/boxing/boxing.zip

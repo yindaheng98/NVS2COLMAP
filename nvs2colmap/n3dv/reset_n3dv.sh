@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 rm -rf data/coffee_martini data/cook_spinach data/cut_roasted_beef data/flame_salmon_1 data/flame_steak data/sear_steak
 (
   cd data

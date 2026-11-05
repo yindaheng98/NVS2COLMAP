@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 rm -rf data/basketball data/boxes data/football data/juggle data/softball data/tennis
 unzip data/data.zip
 python -m nvs2colmap.dynamic3dgs --path data/basketball --n-frames 150 "$@"

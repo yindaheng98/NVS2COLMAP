@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 tar -xf data/SiggraphAsia2026VVC/heldout_test_cameras/SiggraphAisa2026VVC_heldout_test_cameras.tar \
   -C data/SiggraphAsia2026VVC \
   --transform 's,^SiggraphAisa2026VVC_heldout_test_cameras/,,' \
