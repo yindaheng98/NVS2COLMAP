@@ -47,7 +47,7 @@ mkdir -p data
 wget -qO- https://johnvansickle.com/ffmpeg/releases/ffmpeg-7.0.2-amd64-static.tar.xz | tar -xJ -C data --strip-components=1 ffmpeg-7.0.2-amd64-static/ffmpeg ffmpeg-7.0.2-amd64-static/ffprobe
 ```
 
-Install COLMAP from conda-forge. This puts `colmap` on `PATH`:
+Install COLMAP from conda-forge:
 
 ```bash
 conda install -c conda-forge colmap
@@ -56,7 +56,7 @@ conda install -c conda-forge colmap
 For Neural 3D Video scenes, pass `data/ffmpeg` and `data/ffprobe`, or put
 `ffmpeg` and `ffprobe` on `PATH`. To run the COLMAP reconstruction that
 [InstantSplat](https://github.com/yindaheng98/InstantSplat) continues from,
-pass that `colmap` executable via `--colmap-executable`.
+pass the conda `colmap` executable via `--colmap-executable`.
 
 Extract a Neural 3D Video scene and write per-frame COLMAP text models for
 [InstantSplat](https://github.com/yindaheng98/InstantSplat):
@@ -91,7 +91,7 @@ python -m nvs2colmap.n3dv \
   --video-extension MP4 \
   --n-frames 1 \
   --use-colmap \
-  --colmap-executable colmap \
+  --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
   --colmap-use-gpu 1
 ```
 
