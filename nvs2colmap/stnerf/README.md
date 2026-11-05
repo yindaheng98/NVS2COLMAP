@@ -29,8 +29,9 @@ pip install numpy torch
 
 SharePoint does not publish a direct file URL. Visit the sharing link once to
 store a guest cookie, then download each archive with that cookie. Remove only
-the scenes these archives will replace, overwrite the zip files in `data/` if
-they already exist, and extract with `-d data`:
+the scenes these archives will replace, and overwrite the zip files in `data/`
+if they already exist. The `unzip` patterns extract `frame*/images` and
+`pose/`. Point clouds, labels, and background meshes stay in the zip:
 
 ```bash
 rm -rf data/boxing data/taekwondo data/walking
@@ -46,21 +47,22 @@ curl -c "$cookie" -b "$cookie" -L -o data/taekwondo.zip \
 curl -c "$cookie" -b "$cookie" -L -o data/walking.zip \
   "${base}%2Fpersonal%2Fxliufe_connect_ust_hk%2FDocuments%2Fst-nerf%2Fwalking.zip"
 rm -f "$cookie"
-unzip -d data data/boxing.zip
-unzip -d data data/taekwondo.zip
-unzip -d data data/walking.zip
+unzip -d data data/boxing.zip 'boxing/frame*/images/*'
+unzip -d data data/taekwondo.zip 'taekwondo/frame*/images/*' 'taekwondo/pose/*'
+unzip -d data data/walking.zip 'walking/frame*/images/*' 'walking/pose/*'
 ```
 
-`walking` has frames `frame1` through `frame75` and cameras `0` through `15`.
-`taekwondo` has frames `frame1` through `frame101` and cameras `0` through `14`.
 `boxing` has frames `frame1` through `frame71` and cameras `0` through `14`.
-`boxing.zip` does not include `pose/`, so the command below fails on it.
+`taekwondo` has frames `frame1` through `frame101` and cameras `0` through `14`.
+`walking` has frames `frame1` through `frame75` and cameras `0` through `15`.
+`boxing.zip` has no `pose/` at all, so its command raises `FileNotFoundError`.
 
-Write COLMAP text models from the released poses. Each scene is one command:
+Each scene is one command:
 
 ```bash
-python -m nvs2colmap.stnerf --path data/walking --n-frames 75
+python -m nvs2colmap.stnerf --path data/boxing --n-frames 71
 python -m nvs2colmap.stnerf --path data/taekwondo --n-frames 101
+python -m nvs2colmap.stnerf --path data/walking --n-frames 75
 ```
 
 ## Dataset Format
@@ -138,8 +140,8 @@ walking/
 ```
 
 Image names in the COLMAP files are the source filenames, `0.png`, `1.png`,
-and so on. `points3D.txt` is empty. Labels and point clouds stay where the
-archive put them.
+and so on. `points3D.txt` is empty. The quick start leaves labels, point
+clouds, and background meshes inside the zip.
 
 With `--use-colmap`, each requested frame first hardlinks `images/` to
 `input/`. COLMAP then replaces `images/` with the undistorted images and
