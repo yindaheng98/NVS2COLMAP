@@ -27,6 +27,50 @@ pip install numpy torch
 The command also needs `ffmpeg` and `ffprobe` on `PATH`, or explicit paths via
 `--ffmpeg` and `--ffprobe`.
 
+## Quick Start
+
+Each official archive contains one scene directory. Remove only the scenes
+these archives will replace, overwrite the zip files in `data/` if they already
+exist, and extract with `-d data` so the scenes land at `data/coffee_martini`,
+`data/cook_spinach`, and the other sequence folders. `flame_salmon_1` is
+published as a split archive; `zip -F` rebuilds `data/flame_salmon_1.zip`
+before extraction.
+
+```bash
+rm -rf data/coffee_martini data/cook_spinach data/cut_roasted_beef data/flame_salmon_1 data/flame_steak data/sear_steak
+mkdir -p data
+wget -O data/coffee_martini.zip https://github.com/facebookresearch/Neural_3D_Video/releases/download/v1.0/coffee_martini.zip
+wget -O data/cook_spinach.zip https://github.com/facebookresearch/Neural_3D_Video/releases/download/v1.0/cook_spinach.zip
+wget -O data/cut_roasted_beef.zip https://github.com/facebookresearch/Neural_3D_Video/releases/download/v1.0/cut_roasted_beef.zip
+wget -O data/flame_steak.zip https://github.com/facebookresearch/Neural_3D_Video/releases/download/v1.0/flame_steak.zip
+wget -O data/sear_steak.zip https://github.com/facebookresearch/Neural_3D_Video/releases/download/v1.0/sear_steak.zip
+wget -O data/flame_salmon_1_split.zip https://github.com/facebookresearch/Neural_3D_Video/releases/download/v1.0/flame_salmon_1_split.zip
+wget -O data/flame_salmon_1_split.z01 https://github.com/facebookresearch/Neural_3D_Video/releases/download/v1.0/flame_salmon_1_split.z01
+wget -O data/flame_salmon_1_split.z02 https://github.com/facebookresearch/Neural_3D_Video/releases/download/v1.0/flame_salmon_1_split.z02
+wget -O data/flame_salmon_1_split.z03 https://github.com/facebookresearch/Neural_3D_Video/releases/download/v1.0/flame_salmon_1_split.z03
+(
+  cd data
+  zip -F flame_salmon_1_split.zip --out flame_salmon_1.zip
+)
+unzip -d data data/coffee_martini.zip
+unzip -d data data/cook_spinach.zip
+unzip -d data data/cut_roasted_beef.zip
+unzip -d data data/flame_steak.zip
+unzip -d data data/sear_steak.zip
+unzip -d data data/flame_salmon_1.zip
+```
+
+Decode the videos and write COLMAP text models. Each scene is one command:
+
+```bash
+python -m nvs2colmap.n3dv --path data/coffee_martini --n-frames 300
+python -m nvs2colmap.n3dv --path data/cook_spinach --n-frames 300
+python -m nvs2colmap.n3dv --path data/cut_roasted_beef --n-frames 300
+python -m nvs2colmap.n3dv --path data/flame_salmon_1 --n-frames 1200
+python -m nvs2colmap.n3dv --path data/flame_steak --n-frames 300
+python -m nvs2colmap.n3dv --path data/sear_steak --n-frames 300
+```
+
 ## Dataset Format
 
 A scene folder is expected to contain one `poses_bounds.npy` file plus one
