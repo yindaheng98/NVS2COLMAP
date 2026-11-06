@@ -62,6 +62,26 @@ def point_triangulator(folder, mapper_input_path, colmap_executable="colmap"):
     return execute(cmd)
 
 
+def bundle_adjuster(model_path, colmap_executable="colmap"):
+    """Refine camera poses in an existing model. Intrinsics stay fixed.
+
+    COLMAP 3.13 stores a legacy images.txt pose as rig_from_world on a
+    one-camera rig, so only that transform is optimized. The reference
+    sensor_from_rig stays identity.
+    """
+    cmd = [
+        colmap_executable, "bundle_adjuster",
+        "--input_path", model_path,
+        "--output_path", model_path,
+        "--BundleAdjustment.refine_focal_length", "0",
+        "--BundleAdjustment.refine_principal_point", "0",
+        "--BundleAdjustment.refine_extra_params", "0",
+        "--BundleAdjustment.refine_rig_from_world", "1",
+        "--BundleAdjustment.refine_sensor_from_rig", "0",
+    ]
+    return execute(cmd)
+
+
 def mapper(folder, mapper_input_path, colmap_executable="colmap"):
     os.makedirs(os.path.join(folder, "distorted", "sparse", "0"), exist_ok=True)
     cmd = [

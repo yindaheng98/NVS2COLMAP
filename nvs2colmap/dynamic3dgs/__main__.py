@@ -71,9 +71,19 @@ def parse_args() -> argparse.Namespace:
         default="1",
         help="Whether COLMAP SIFT extraction/matching should use GPU when --use-colmap is set.",
     )
+    parser.add_argument(
+        "--refine-poses",
+        action="store_true",
+        help=(
+            "After triangulation, bundle-adjust the given camera poses. "
+            "Intrinsics stay fixed. Requires --use-colmap."
+        ),
+    )
     args = parser.parse_args()
     if args.no_train_camera and args.no_test_camera:
         parser.error("Cannot set both --no-train-camera and --no-test-camera.")
+    if args.refine_poses and not args.use_colmap:
+        parser.error("--refine-poses requires --use-colmap.")
     return args
 
 
@@ -130,6 +140,7 @@ def main() -> None:
             image_extension="",
             colmap_executable=args.colmap_executable,
             use_gpu=args.colmap_use_gpu,
+            refine_poses=args.refine_poses,
         )
 
     print(f"Done: {folder}")

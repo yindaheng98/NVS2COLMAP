@@ -1,6 +1,7 @@
 """Utility helpers exported for package-level imports."""
 
 from .colmap import (
+    bundle_adjuster,
     execute,
     exhaustive_matcher,
     feature_extractor,
@@ -16,6 +17,7 @@ from .ffmpeg import count_video_frames, extract_video_frames, extract_video_fram
 from .rotation import matrix_to_quaternion, standardize_quaternion
 
 __all__ = [
+    "bundle_adjuster",
     "count_video_frames",
     "execute",
     "exhaustive_matcher",

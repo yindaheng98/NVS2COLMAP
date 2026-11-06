@@ -8,6 +8,7 @@ from typing import Sequence
 
 from nvs2colmap.write_model import CameraModel
 from nvs2colmap.utils.colmap import (
+    bundle_adjuster,
     exhaustive_matcher,
     feature_extractor,
     image_undistorter,
@@ -40,6 +41,7 @@ def run_colmap(
     image_extension: str = ".png",
     colmap_executable: str = "colmap",
     use_gpu: str = "1",
+    refine_poses: bool = False,
 ) -> None:
     folder = Path(folder)
     colmap_cameras, colmap_images = build_colmap_records(cameras, image_extension)
@@ -63,6 +65,10 @@ def run_colmap(
 
     if point_triangulator(str(folder), str(mapper_input_path), colmap_executable=colmap_executable) != 0:
         raise RuntimeError("Triangulation failed")
+    # point_triangulator fixes existing frames, so the prior poses do not move.
+    # bundle_adjuster then refines rig_from_world against the triangulated points.
+    if refine_poses and bundle_adjuster(str(mapper_input_path), colmap_executable=colmap_executable) != 0:
+        raise RuntimeError("Pose refinement failed")
     if mapper(str(folder), str(mapper_input_path), colmap_executable=colmap_executable) != 0:
         raise RuntimeError("Mapping failed")
 
@@ -81,6 +87,7 @@ def run_video_colmap(
     image_extension: str = ".png",
     colmap_executable: str = "colmap",
     use_gpu: str = "1",
+    refine_poses: bool = False,
 ) -> None:
     output_pattern = str(output_pattern)
     for frame in range(start_number, start_number + n_frames):
@@ -90,4 +97,5 @@ def run_video_colmap(
             image_extension=image_extension,
             colmap_executable=colmap_executable,
             use_gpu=use_gpu,
+            refine_poses=refine_poses,
         )
