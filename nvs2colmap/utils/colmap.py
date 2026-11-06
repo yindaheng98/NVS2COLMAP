@@ -58,7 +58,10 @@ def point_triangulator(folder, mapper_input_path, colmap_executable="colmap"):
         "--database_path", os.path.join(folder, "distorted", "database.db"),
         "--input_path", mapper_input_path,
         "--output_path", mapper_input_path,
-        "--image_path", os.path.join(folder, "input")
+        "--image_path", os.path.join(folder, "input"),
+        "--Mapper.ba_refine_focal_length", "0",
+        "--Mapper.ba_refine_principal_point", "0",
+        "--Mapper.ba_refine_extra_params", "0",
     ]
     return execute(cmd)
 
@@ -129,6 +132,9 @@ def pose_prior_mapper(folder, position_std, colmap_executable="colmap"):
         "--prior_position_std_y", std,
         "--prior_position_std_z", std,
         "--use_robust_loss_on_prior_position", "1",
+        "--Mapper.ba_refine_focal_length", "0",
+        "--Mapper.ba_refine_principal_point", "0",
+        "--Mapper.ba_refine_extra_params", "0",
     ]
     return execute(cmd)
 
@@ -145,6 +151,9 @@ def mapper(folder, mapper_input_path=None, colmap_executable="colmap"):
         "--database_path", os.path.join(folder, "distorted", "database.db"),
         "--image_path", os.path.join(folder, "input"),
         "--output_path", output_path,
+        "--Mapper.ba_refine_focal_length", "0",
+        "--Mapper.ba_refine_principal_point", "0",
+        "--Mapper.ba_refine_extra_params", "0",
     ]
     if mapper_input_path:
         cmd += ["--input_path", mapper_input_path]
