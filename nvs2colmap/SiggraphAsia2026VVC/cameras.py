@@ -13,6 +13,7 @@ from PIL import Image
 from nvs2colmap.utils import matrix_to_quaternion
 from nvs2colmap.write_model import CameraModel
 
+
 @dataclass(frozen=True)
 class ParsedCamera:
     """One static camera and the source image for every frame index."""
@@ -156,6 +157,8 @@ def read_camera_meta(
     folder: Path,
     include_train: bool = True,
     include_test: bool = True,
+    include_cameras: set[int] | None = None,
+    exclude_cameras: set[int] | None = None,
 ) -> tuple[list[ParsedCamera], list[int]]:
     folder = Path(folder)
     train_cameras: list[ParsedCamera] = []
@@ -174,4 +177,30 @@ def read_camera_meta(
         raise ValueError(f"No cameras with images found in {folder}")
 
     cameras = [merged[view] for view in sorted(merged)]
+    # View names are the zero-padded camera numbers: "00" in siga, "0002" in selfcap.
+    if include_cameras is not None:
+        cameras = [camera for camera in cameras if int(camera.view) in include_cameras]
+    if exclude_cameras is not None:
+        cameras = [camera for camera in cameras if int(camera.view) not in exclude_cameras]
+    if not cameras:
+        raise ValueError(f"No cameras with images found in {folder}")
     return cameras, sorted(cameras[0].frames)
+
+
+def parse_camera_numbers(spec: str) -> set[int]:
+    """Evaluate a Python expression whose values are all ints."""
+    try:
+        value = eval(spec)
+    except Exception as exc:
+        raise ValueError(f"Camera selection {spec!r} is not a Python expression of ints: {exc}") from exc
+    if type(value) is int:
+        value = (value,)
+    try:
+        numbers = list(value)
+    except TypeError as exc:
+        raise ValueError(f"Camera selection {spec!r} is not a sequence of ints.") from exc
+    if any(type(number) is not int for number in numbers):
+        raise ValueError(f"Camera selection {spec!r} must contain only ints.")
+    if not numbers:
+        raise ValueError("Camera selection is empty.")
+    return set(numbers)

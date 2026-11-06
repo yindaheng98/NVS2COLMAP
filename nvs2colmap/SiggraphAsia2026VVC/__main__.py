@@ -8,7 +8,7 @@ from pathlib import Path
 from nvs2colmap.colmap import run_video_colmap, run_video_colmap_refine_poses
 from nvs2colmap.write_model import write_video_colmap_text_model
 
-from .cameras import read_camera_meta
+from .cameras import parse_camera_numbers, read_camera_meta
 from .link_frames import count_frame_dirs, link_frames, select_frame_indices
 from .points import link_point_clouds
 from .undistort import undistort_frames
@@ -50,6 +50,21 @@ def parse_args() -> argparse.Namespace:
         "--no-test-camera",
         action="store_true",
         help="Do not extract cameras listed in test_intri.yml and test_extri.yml.",
+    )
+    parser.add_argument(
+        "--include-cameras",
+        help=(
+            "Python expression of camera numbers to keep, such as 0,1,11 or "
+            "range(0, 25). Every value must be an int. A number matches the YAML "
+            "view name, so 0 selects 00 and 0000. Defaults to every camera."
+        ),
+    )
+    parser.add_argument(
+        "--exclude-cameras",
+        help=(
+            "Python expression of camera numbers to leave out, in the same form as "
+            "--include-cameras. Use this to drop close-up views. Applied after --include-cameras."
+        ),
     )
     parser.add_argument(
         "--skip-frame-linking",
@@ -108,6 +123,15 @@ def parse_args() -> argparse.Namespace:
         parser.error("--reestimate-init-pose requires --use-colmap.")
     if args.refine_init_pose and args.reestimate_init_pose:
         parser.error("Cannot set both --refine-init-pose and --reestimate-init-pose.")
+    try:
+        args.include_camera_numbers = (
+            parse_camera_numbers(args.include_cameras) if args.include_cameras else None
+        )
+        args.exclude_camera_numbers = (
+            parse_camera_numbers(args.exclude_cameras) if args.exclude_cameras else None
+        )
+    except ValueError as exc:
+        parser.error(str(exc))
     return args
 
 
@@ -119,7 +143,11 @@ def main() -> None:
         folder,
         include_train=not args.no_train_camera,
         include_test=not args.no_test_camera,
+        include_cameras=args.include_camera_numbers,
+        exclude_cameras=args.exclude_camera_numbers,
     )
+    if args.include_cameras or args.exclude_cameras:
+        print("Cameras: " + " ".join(camera.view for camera in cameras))
     start_number = args.start_number
     n_frames = args.n_frames
     if args.skip_frame_linking and n_frames is None:

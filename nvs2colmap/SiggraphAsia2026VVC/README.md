@@ -225,7 +225,8 @@ first file is `frame1` whether its name is `000000.jpg` or `000900.jpg`.
 `test_intri.yml` and `test_extri.yml` are the test views, and are read when
 those files are present. A view without `images/<view>/` is left out. A view
 listed in both YAML files keeps the training record. Views are sorted by name,
-so `images/00/000000.jpg` becomes `00.jpg`.
+so `images/00/000000.jpg` becomes `00.jpg`. `--include-cameras` and `--exclude-cameras`
+keep or drop those view ids. The number `0` matches `00` and `0000`.
 
 Each YAML pair stores:
 
@@ -330,6 +331,23 @@ python -m nvs2colmap.SiggraphAsia2026VVC \
   --no-test-camera
 ```
 
+Leave out close-up cameras by view id. The value is a Python expression of
+ints. This drops views `25`, `28`, `29`, and `30`:
+
+```bash
+python -m nvs2colmap.SiggraphAsia2026VVC \
+  --path data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1 \
+  --exclude-cameras '{25, *range(28, 31)}'
+```
+
+Keep an explicit set instead:
+
+```bash
+python -m nvs2colmap.SiggraphAsia2026VVC \
+  --path data/SiggraphAsia2026VVC/selfcap/sparse/test/0512_bike \
+  --include-cameras 2,4,8
+```
+
 Run the full COLMAP pipeline for each frame:
 
 ```bash
@@ -360,6 +378,14 @@ python -m nvs2colmap.SiggraphAsia2026VVC \
   `train_extri.yml`.
 - `--no-test-camera`: skip cameras listed in `test_intri.yml` and
   `test_extri.yml`.
+- `--include-cameras`: Python expression of camera numbers to keep, such as
+  `0,1,11` or `range(0, 25)`. Every value must be an int. A number matches the
+  YAML view name, so `0` selects `00` and `0000`. Defaults to every camera in
+  the selected split.
+- `--exclude-cameras`: Python expression of camera numbers to leave out, in
+  the same form as `--include-cameras`. Close-up views can be dropped this
+  way. Applied after `--include-cameras`. A number with no matching view is
+  left out.
 - `--start-number`: 1-based position in the frames on disk, default `1`.
   Output `frame%d` uses that same count. The first file is `frame1`.
 - `--skip-frame-linking`: keep existing frame images and masks, and skip
