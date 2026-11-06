@@ -6,6 +6,8 @@ import os
 from pathlib import Path
 from typing import Sequence
 
+import numpy as np
+
 from nvs2colmap.write_model import CameraModel
 from nvs2colmap.utils.colmap import (
     bundle_adjuster,
@@ -15,8 +17,36 @@ from nvs2colmap.utils.colmap import (
     mapper,
     mask_undistorter,
     point_triangulator,
+    pose_prior_mapper,
     read_db,
+    write_pose_priors,
 )
+
+
+def camera_center(camera: CameraModel) -> np.ndarray:
+    """World-space camera center from a COLMAP cam-from-world pose."""
+    qw, qx, qy, qz = (float(value) for value in camera.qvec)
+    rotation = np.array(
+        [
+            [1 - 2 * qy * qy - 2 * qz * qz, 2 * qx * qy - 2 * qz * qw, 2 * qx * qz + 2 * qy * qw],
+            [2 * qx * qy + 2 * qz * qw, 1 - 2 * qx * qx - 2 * qz * qz, 2 * qy * qz - 2 * qx * qw],
+            [2 * qx * qz - 2 * qy * qw, 2 * qy * qz + 2 * qx * qw, 1 - 2 * qx * qx - 2 * qy * qy],
+        ]
+    )
+    return -rotation.T @ np.asarray(camera.tvec, dtype=float)
+
+
+def pose_prior_std(centers: Sequence[np.ndarray]) -> float:
+    """Half the median spacing between cameras, so an inaccurate prior stays loose."""
+    if len(centers) < 2:
+        return 1.0
+    points = np.stack(centers)
+    distances = np.linalg.norm(points[:, None, :] - points[None, :, :], axis=-1)
+    np.fill_diagonal(distances, np.inf)
+    spacing = float(np.median(distances.min(axis=1)))
+    if not np.isfinite(spacing) or spacing <= 0:
+        return 1.0
+    return 0.5 * spacing
 
 
 def build_colmap_records(
@@ -42,35 +72,50 @@ def run_colmap(
     colmap_executable: str = "colmap",
     use_gpu: str = "1",
     refine_poses: bool = False,
+    reestimate_poses: bool = False,
 ) -> None:
     folder = Path(folder)
-    colmap_cameras, colmap_images = build_colmap_records(cameras, image_extension)
 
     if feature_extractor(str(folder), use_gpu=use_gpu, colmap_executable=colmap_executable) != 0:
         raise RuntimeError("Feature extraction failed")
     if exhaustive_matcher(str(folder), use_gpu=use_gpu, colmap_executable=colmap_executable) != 0:
         raise RuntimeError("Feature matching failed")
 
-    cam_ids, image_ids = read_db(str(folder))
+    if reestimate_poses:
+        centers = {
+            f"{camera.name}{image_extension}": camera_center(camera)
+            for camera in cameras
+        }
+        write_pose_priors(
+            str(folder),
+            {name: tuple(center) for name, center in centers.items()},
+        )
+        if pose_prior_mapper(
+            str(folder),
+            pose_prior_std(list(centers.values())),
+            colmap_executable=colmap_executable,
+        ) != 0:
+            raise RuntimeError("Mapping failed")
+    else:
+        colmap_cameras, colmap_images = build_colmap_records(cameras, image_extension)
+        cam_ids, image_ids = read_db(str(folder))
 
-    mapper_input_path = folder / "distorted" / "sparse" / "loading"
-    os.makedirs(mapper_input_path, exist_ok=True)
-    with open(mapper_input_path / "cameras.txt", "w") as f:
-        for img_name, cam_id in sorted(cam_ids.items(), key=lambda i: i[1]):
-            f.write(f"{cam_id} {colmap_cameras[img_name]}\n")
-    with open(mapper_input_path / "images.txt", "w") as f:
-        for img_name, image_id in sorted(image_ids.items(), key=lambda i: i[1]):
-            f.write(f"{image_id} {colmap_images[img_name]} {cam_ids[img_name]} {img_name}\n\n")
-    open(mapper_input_path / "points3D.txt", "w").close()
+        mapper_input_path = folder / "distorted" / "sparse" / "loading"
+        os.makedirs(mapper_input_path, exist_ok=True)
+        with open(mapper_input_path / "cameras.txt", "w") as f:
+            for img_name, cam_id in sorted(cam_ids.items(), key=lambda i: i[1]):
+                f.write(f"{cam_id} {colmap_cameras[img_name]}\n")
+        with open(mapper_input_path / "images.txt", "w") as f:
+            for img_name, image_id in sorted(image_ids.items(), key=lambda i: i[1]):
+                f.write(f"{image_id} {colmap_images[img_name]} {cam_ids[img_name]} {img_name}\n\n")
+        open(mapper_input_path / "points3D.txt", "w").close()
 
-    if point_triangulator(str(folder), str(mapper_input_path), colmap_executable=colmap_executable) != 0:
-        raise RuntimeError("Triangulation failed")
-    # point_triangulator fixes existing frames, so the prior poses do not move.
-    # bundle_adjuster then refines rig_from_world against the triangulated points.
-    if refine_poses and bundle_adjuster(str(mapper_input_path), colmap_executable=colmap_executable) != 0:
-        raise RuntimeError("Pose refinement failed")
-    if mapper(str(folder), str(mapper_input_path), colmap_executable=colmap_executable) != 0:
-        raise RuntimeError("Mapping failed")
+        if point_triangulator(str(folder), str(mapper_input_path), colmap_executable=colmap_executable) != 0:
+            raise RuntimeError("Triangulation failed")
+        if refine_poses and bundle_adjuster(str(mapper_input_path), colmap_executable=colmap_executable) != 0:
+            raise RuntimeError("Pose refinement failed")
+        if mapper(str(folder), str(mapper_input_path), colmap_executable=colmap_executable) != 0:
+            raise RuntimeError("Mapping failed")
 
     if image_undistorter(str(folder), colmap_executable=colmap_executable) != 0:
         raise RuntimeError("Undistortion failed")
@@ -88,6 +133,7 @@ def run_video_colmap(
     colmap_executable: str = "colmap",
     use_gpu: str = "1",
     refine_poses: bool = False,
+    reestimate_poses: bool = False,
 ) -> None:
     output_pattern = str(output_pattern)
     for frame in range(start_number, start_number + n_frames):
@@ -98,4 +144,5 @@ def run_video_colmap(
             colmap_executable=colmap_executable,
             use_gpu=use_gpu,
             refine_poses=refine_poses,
+            reestimate_poses=reestimate_poses,
         )

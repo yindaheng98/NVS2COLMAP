@@ -79,11 +79,23 @@ def parse_args() -> argparse.Namespace:
             "Intrinsics stay fixed. Requires --use-colmap."
         ),
     )
+    parser.add_argument(
+        "--reestimate-poses",
+        action="store_true",
+        help=(
+            "Run COLMAP mapper from scratch, using the given camera centers "
+            "as a soft position prior. Poses can still move. Requires --use-colmap."
+        ),
+    )
     args = parser.parse_args()
     if args.no_train_camera and args.no_test_camera:
         parser.error("Cannot set both --no-train-camera and --no-test-camera.")
     if args.refine_poses and not args.use_colmap:
         parser.error("--refine-poses requires --use-colmap.")
+    if args.reestimate_poses and not args.use_colmap:
+        parser.error("--reestimate-poses requires --use-colmap.")
+    if args.refine_poses and args.reestimate_poses:
+        parser.error("Cannot set both --refine-poses and --reestimate-poses.")
     return args
 
 
@@ -141,6 +153,7 @@ def main() -> None:
             colmap_executable=args.colmap_executable,
             use_gpu=args.colmap_use_gpu,
             refine_poses=args.refine_poses,
+            reestimate_poses=args.reestimate_poses,
         )
 
     print(f"Done: {folder}")
