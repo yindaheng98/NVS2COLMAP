@@ -42,7 +42,11 @@ def extract_video_frames(
     video_path, output_pattern,
     start_number: int = 1, n_frames: int | None = None,
     ffmpeg_executable: str = "ffmpeg", ffprobe_executable: str = "ffprobe",
+    output_start_number: int | None = None,
 ) -> int:
+    if output_start_number is None:
+        output_start_number = start_number
+
     frame_count = count_video_frames(
         video_path,
         start_number=start_number,
@@ -50,7 +54,7 @@ def extract_video_frames(
         ffprobe_executable=ffprobe_executable,
     )
 
-    for frame in range(start_number, start_number + frame_count):
+    for frame in range(output_start_number, output_start_number + frame_count):
         os.makedirs(os.path.dirname(output_pattern % frame), exist_ok=True)
 
     cmd = [
@@ -63,7 +67,7 @@ def extract_video_frames(
         "-vf",
         f"trim=start_frame={start_number - 1}",
         "-frames:v", str(frame_count),
-        "-start_number", str(start_number),
+        "-start_number", str(output_start_number),
         str(output_pattern), "-y",
     ]
     print(" ".join(str(part) for part in cmd))
@@ -82,6 +86,7 @@ def extract_video_frames_parallel(
     ffmpeg_executable: str = "ffmpeg",
     ffprobe_executable: str = "ffprobe",
     process_count: int = 1,
+    output_start_number: int | None = None,
 ) -> list[int]:
     """Extract frames from multiple videos using multiple ffmpeg processes."""
     assert process_count >= 1, f"process_count must be >= 1, got {process_count}."
@@ -94,6 +99,7 @@ def extract_video_frames_parallel(
             n_frames,
             ffmpeg_executable,
             ffprobe_executable,
+            output_start_number,
         )
         for video_path, output_pattern in jobs
     ]

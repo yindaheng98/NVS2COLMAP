@@ -164,8 +164,8 @@ default, and the command also writes `frame*/sparse/0` text models. With
 `--use-colmap`, decoded frames are written to `frame*/input`, and each frame
 gets `distorted/sparse/0` plus undistorted `images/`, `sparse/`, and `stereo/`
 for [InstantSplat](https://github.com/yindaheng98/InstantSplat). When
-`--start-number N` is provided, decoding starts from source video frame `N`,
-and the generated folders/images are also numbered from `N`.
+`--start-number N` is provided, decoding starts from source video frame `N`.
+Extracted frames are written starting at `frame1`.
 
 For Dynamic 3D Gaussians scenes, images from both `train_meta.json` and
 `test_meta.json` are hardlinked into `frame*/images`, and included masks are

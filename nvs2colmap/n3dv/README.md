@@ -222,7 +222,7 @@ videos are matched against `poses_bounds.npy` rows in that order. Output image
 names and COLMAP image names use the corresponding video filename stems.
 By default, extraction starts from source frame `1`, producing `frame1`,
 `frame2`, ... . Passing `--start-number N` starts decoding from source video
-frame `N` and also numbers output folders and image files from `N`.
+frame `N` and renumbers the extracted frames from `frame1`.
 
 ## Output Format
 
@@ -350,8 +350,7 @@ python -m nvs2colmap.n3dv \
   If omitted with `--skip-video-extraction`, frame directories are counted
   from `frame%d`.
 - `--start-number`: 1-based source frame index to start decoding from, default
-  `1`. Output `frame%d` folders and written image filenames use the same
-  numbering start.
+  `1`. Output `frame%d` folders are renumbered from `frame1`.
 - `--ffmpeg`: path to the `ffmpeg` executable.
 - `--ffprobe`: path to the `ffprobe` executable.
 - `--image-extension`: image extension written by ffmpeg and referenced by

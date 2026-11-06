@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-rm -rf data/Robo360/batch1/*/frame* data/Robo360/batch2/*/frame*
+rm -rf data/Robo360/batch1/*/frame*
 python -m nvs2colmap.n3dv --path data/Robo360/batch1/bread_fall "$@"
 python -m nvs2colmap.n3dv --path data/Robo360/batch1/bread_tear "$@"
 python -m nvs2colmap.n3dv --path data/Robo360/batch1/cable_aug25_1500 "$@"
@@ -29,18 +29,3 @@ python -m nvs2colmap.n3dv --path data/Robo360/batch1/xarm6_captain_pick_rotate "
 python -m nvs2colmap.n3dv --path data/Robo360/batch1/xarm6_hammer_down_peg "$@"
 python -m nvs2colmap.n3dv --path data/Robo360/batch1/xarm6_peg_insertion "$@"
 python -m nvs2colmap.n3dv --path data/Robo360/batch1/xarm6_put_fork_in_mug "$@"
-python -m nvs2colmap.n3dv --path data/Robo360/batch2/xarm6_bottle_flip_fast --video-extension MP4 "$@"
-python -m nvs2colmap.n3dv --path data/Robo360/batch2/xarm6_bread_fall --video-extension MP4 "$@"
-python -m nvs2colmap.n3dv --path data/Robo360/batch2/xarm6_cucumber_skewer --video-extension MP4 "$@"
-python -m nvs2colmap.n3dv --path data/Robo360/batch2/xarm6_dish_soap --video-extension MP4 "$@"
-python -m nvs2colmap.n3dv --path data/Robo360/batch2/xarm6_fold_tshirt --video-extension MP4 "$@"
-python -m nvs2colmap.n3dv --path data/Robo360/batch2/xarm6_fortune_cookie --video-extension MP4 "$@"
-python -m nvs2colmap.n3dv --path data/Robo360/batch2/xarm6_gold_rope_in_basket_2 --video-extension MP4 "$@"
-python -m nvs2colmap.n3dv --path data/Robo360/batch2/xarm6_plastic_air_bag --video-extension MP4 "$@"
-python -m nvs2colmap.n3dv --path data/Robo360/batch2/xarm6_plugboard --video-extension MP4 "$@"
-python -m nvs2colmap.n3dv --path data/Robo360/batch2/xarm6_pour_orange_juice_2 --video-extension MP4 "$@"
-python -m nvs2colmap.n3dv --path data/Robo360/batch2/xarm6_put_bread_in_plastic_bag --video-extension MP4 "$@"
-python -m nvs2colmap.n3dv --path data/Robo360/batch2/xarm6_sand_pour --video-extension MP4 "$@"
-python -m nvs2colmap.n3dv --path data/Robo360/batch2/xarm6_sprite_pour_2 --video-extension MP4 "$@"
-python -m nvs2colmap.n3dv --path data/Robo360/batch2/xarm6_sprite_stack --video-extension MP4 "$@"
-python -m nvs2colmap.n3dv --path data/Robo360/batch2/xarm6_unfold_tshirt --video-extension MP4 "$@"

@@ -49,5 +49,6 @@ def extract_videos(
         ffmpeg_executable=ffmpeg_executable,
         ffprobe_executable=ffprobe_executable,
         process_count=ffmpeg_processes,
+        output_start_number=1,
     )
     return max(extracted_frame_counts)

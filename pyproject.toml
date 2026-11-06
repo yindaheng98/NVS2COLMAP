@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nvs2colmap"
-version = "0.8.5"
+version = "0.8.6"
 description = "Utilities for converting novel view synthesis datasets to COLMAP format."
 readme = "README.md"
 authors = [{ name = "Howard Yin", email = "yindaheng98@gmail.com" }]
@@ -58,7 +58,7 @@ packages = { find = { include = ["nvs2colmap*"] } }
 "" = "."
 
 [tool.setuptools.package-data]
-"nvs2colmap.n3dv" = ["README.md", "reset_n3dv.sh", "reset_streamrf.sh", "reset_robo360.sh"]
+"nvs2colmap.n3dv" = ["README.md", "reset_n3dv.sh", "reset_streamrf.sh", "reset_Robo360batch1.sh", "reset_Robo360batch2.sh"]
 "nvs2colmap.dynamic3dgs" = ["README.md", "reset_dynamic3dgs.sh"]
 "nvs2colmap.stnerf" = ["README.md", "reset_stnerf.sh"]
 "nvs2colmap.SiggraphAsia2026VVC" = ["README.md", "reset_SiggraphAsia2026VVC.sh"]

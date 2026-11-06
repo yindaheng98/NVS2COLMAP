@@ -34,7 +34,7 @@ def parse_args() -> argparse.Namespace:
         "--start-number",
         type=int,
         default=1,
-        help="1-based source frame to start extracting from; output frame folders and image files use the same starting number.",
+        help="1-based source frame to start extracting from. Output folders are renumbered from frame1.",
     )
     parser.add_argument(
         "--ffmpeg",
@@ -148,14 +148,14 @@ def main() -> None:
             image_extension=args.image_extension,
         )
     elif n_frames is None:
-        n_frames = count_frame_dirs(frame_output_pattern, start_number=args.start_number)
+        n_frames = count_frame_dirs(frame_output_pattern, start_number=1)
 
     if not args.use_colmap:
         write_video_colmap_text_model(
             output_pattern=frame_output_pattern / "sparse" / "0",
             cameras=cameras,
             n_frames=n_frames,
-            start_number=args.start_number,
+            start_number=1,
             image_extension=args.image_extension,
         )
     else:
@@ -163,7 +163,7 @@ def main() -> None:
             output_pattern=frame_output_pattern,
             cameras=cameras,
             n_frames=n_frames,
-            start_number=args.start_number,
+            start_number=1,
             image_extension=args.image_extension,
             colmap_executable=args.colmap_executable,
             use_gpu=args.colmap_use_gpu,
