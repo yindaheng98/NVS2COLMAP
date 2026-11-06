@@ -4,6 +4,7 @@ import filecmp
 import os
 import shutil
 import sqlite3
+import struct
 import subprocess
 from pathlib import Path
 
@@ -82,15 +83,71 @@ def bundle_adjuster(model_path, colmap_executable="colmap"):
     return execute(cmd)
 
 
-def mapper(folder, mapper_input_path, colmap_executable="colmap"):
-    os.makedirs(os.path.join(folder, "distorted", "sparse", "0"), exist_ok=True)
+def write_pose_priors(folder, positions):
+    """Store camera-center priors. COLMAP treats them as soft constraints.
+
+    ``positions`` maps an image name to an xyz camera center in world
+    coordinates. CARTESIAN is coordinate system 1.
+    """
+    conn = sqlite3.connect(os.path.join(folder, "distorted", "database.db"))
+    c = conn.cursor()
+    c.execute("SELECT image_id, name FROM main.images")
+    image_ids = {name: image_id for image_id, name in c.fetchall()}
+    missing = sorted(set(positions) - set(image_ids))
+    if missing:
+        conn.close()
+        raise RuntimeError(f"Pose prior images are missing from the database: {missing}")
+    identity = struct.pack("<9d", 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
+    rows = [
+        (
+            image_ids[name],
+            struct.pack("<3d", float(xyz), float(yz), float(zz)),
+            1,
+            identity,
+        ) for name, (xyz, yz, zz) in positions.items()
+    ]
+    c.executemany(
+        "INSERT INTO pose_priors(image_id, position, coordinate_system, position_covariance) "
+        "VALUES (?, ?, ?, ?)",
+        rows,
+    )
+    conn.commit()
+    conn.close()
+
+
+def pose_prior_mapper(folder, position_std, colmap_executable="colmap"):
+    sparse_path = os.path.join(folder, "distorted", "sparse")
+    os.makedirs(sparse_path, exist_ok=True)
+    std = str(position_std)
+    cmd = [
+        colmap_executable, "pose_prior_mapper",
+        "--database_path", os.path.join(folder, "distorted", "database.db"),
+        "--image_path", os.path.join(folder, "input"),
+        "--output_path", sparse_path,
+        "--overwrite_priors_covariance", "1",
+        "--prior_position_std_x", std,
+        "--prior_position_std_y", std,
+        "--prior_position_std_z", std,
+        "--use_robust_loss_on_prior_position", "1",
+    ]
+    return execute(cmd)
+
+
+def mapper(folder, mapper_input_path=None, colmap_executable="colmap"):
+    sparse_path = os.path.join(folder, "distorted", "sparse")
+    os.makedirs(sparse_path, exist_ok=True)
+    # A prior model is written directly into sparse/0. A from-scratch mapper
+    # creates sparse/0 itself under the output directory.
+    output_path = os.path.join(sparse_path, "0") if mapper_input_path else sparse_path
+    os.makedirs(output_path, exist_ok=True)
     cmd = [
         colmap_executable, "mapper",
         "--database_path", os.path.join(folder, "distorted", "database.db"),
         "--image_path", os.path.join(folder, "input"),
-        "--input_path", mapper_input_path,
-        "--output_path", os.path.join(folder, "distorted", "sparse", "0")
+        "--output_path", output_path,
     ]
+    if mapper_input_path:
+        cmd += ["--input_path", mapper_input_path]
     return execute(cmd)
 
 
