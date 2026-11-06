@@ -16,6 +16,7 @@ from nvs2colmap.utils.colmap import (
     image_undistorter,
     mapper,
     mask_undistorter,
+    model_converter_txt,
     point_triangulator,
     pose_prior_mapper,
     read_db,
@@ -71,8 +72,8 @@ def run_colmap(
     image_extension: str = ".png",
     colmap_executable: str = "colmap",
     use_gpu: str = "1",
-    refine_poses: bool = False,
-    reestimate_poses: bool = False,
+    refine_pose: bool = False,
+    reestimate_pose: bool = False,
 ) -> None:
     folder = Path(folder)
 
@@ -81,7 +82,7 @@ def run_colmap(
     if exhaustive_matcher(str(folder), use_gpu=use_gpu, colmap_executable=colmap_executable) != 0:
         raise RuntimeError("Feature matching failed")
 
-    if reestimate_poses:
+    if reestimate_pose:
         centers = {
             f"{camera.name}{image_extension}": camera_center(camera)
             for camera in cameras
@@ -112,7 +113,7 @@ def run_colmap(
 
         if point_triangulator(str(folder), str(mapper_input_path), colmap_executable=colmap_executable) != 0:
             raise RuntimeError("Triangulation failed")
-        if refine_poses and bundle_adjuster(str(mapper_input_path), colmap_executable=colmap_executable) != 0:
+        if refine_pose and bundle_adjuster(str(mapper_input_path), colmap_executable=colmap_executable) != 0:
             raise RuntimeError("Pose refinement failed")
         if mapper(str(folder), str(mapper_input_path), colmap_executable=colmap_executable) != 0:
             raise RuntimeError("Mapping failed")
@@ -132,8 +133,6 @@ def run_video_colmap(
     image_extension: str = ".png",
     colmap_executable: str = "colmap",
     use_gpu: str = "1",
-    refine_poses: bool = False,
-    reestimate_poses: bool = False,
 ) -> None:
     output_pattern = str(output_pattern)
     for frame in range(start_number, start_number + n_frames):
@@ -143,6 +142,125 @@ def run_video_colmap(
             image_extension=image_extension,
             colmap_executable=colmap_executable,
             use_gpu=use_gpu,
-            refine_poses=refine_poses,
-            reestimate_poses=reestimate_poses,
+        )
+
+
+def read_colmap_image_cameras(model_dir: Path) -> dict[str, tuple[str, str]]:
+    """Map an image name to its camera spec and cam-from-world pose.
+
+    The camera spec is the ``cameras.txt`` line without the camera id. The
+    pose is ``qw qx qy qz tx ty tz`` from ``images.txt``.
+    """
+    cameras: dict[str, str] = {}
+    for line in (model_dir / "cameras.txt").read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        camera_id, spec = line.split(maxsplit=1)
+        cameras[camera_id] = spec
+
+    images: dict[str, tuple[str, str]] = {}
+    lines = (model_dir / "images.txt").read_text().splitlines()
+    index = 0
+    while index < len(lines):
+        line = lines[index].strip()
+        index += 1
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split()
+        pose = " ".join(parts[1:8])
+        name = " ".join(parts[9:])
+        images[name] = (cameras[parts[8]], pose)
+        if index < len(lines) and not lines[index].startswith("#"):
+            index += 1
+    return images
+
+
+def copy_colmap(
+    folder: Path,
+    source_model: Path,
+    image_names: Sequence[str],
+    colmap_executable: str = "colmap",
+    use_gpu: str = "1",
+) -> None:
+    """Triangulate one frame with camera parameters copied from another frame.
+
+    Feature extraction still runs on this frame. Poses and intrinsics are
+    rewritten into ``distorted/sparse/loading`` using this frame's database
+    ids and the source model's parameters, matched by image name.
+    """
+    folder = Path(folder)
+    if feature_extractor(str(folder), use_gpu=use_gpu, colmap_executable=colmap_executable) != 0:
+        raise RuntimeError("Feature extraction failed")
+    if exhaustive_matcher(str(folder), use_gpu=use_gpu, colmap_executable=colmap_executable) != 0:
+        raise RuntimeError("Feature matching failed")
+
+    specs = read_colmap_image_cameras(source_model)
+    cam_ids, image_ids = read_db(str(folder))
+    missing = sorted(set(cam_ids) - set(specs))
+    if missing:
+        raise RuntimeError(f"Source model is missing images: {missing}")
+
+    mapper_input_path = folder / "distorted" / "sparse" / "loading"
+    os.makedirs(mapper_input_path, exist_ok=True)
+    with open(mapper_input_path / "cameras.txt", "w") as f:
+        for img_name, cam_id in sorted(cam_ids.items(), key=lambda i: i[1]):
+            f.write(f"{cam_id} {specs[img_name][0]}\n")
+    with open(mapper_input_path / "images.txt", "w") as f:
+        for img_name, image_id in sorted(image_ids.items(), key=lambda i: i[1]):
+            f.write(f"{image_id} {specs[img_name][1]} {cam_ids[img_name]} {img_name}\n\n")
+    open(mapper_input_path / "points3D.txt", "w").close()
+
+    if point_triangulator(str(folder), str(mapper_input_path), colmap_executable=colmap_executable) != 0:
+        raise RuntimeError("Triangulation failed")
+    if mapper(str(folder), str(mapper_input_path), colmap_executable=colmap_executable) != 0:
+        raise RuntimeError("Mapping failed")
+    if image_undistorter(str(folder), colmap_executable=colmap_executable) != 0:
+        raise RuntimeError("Undistortion failed")
+    if mask_undistorter(folder, image_names, colmap_executable=colmap_executable) != 0:
+        raise RuntimeError("Mask undistortion failed")
+
+
+def run_video_colmap_refine_poses(
+    output_pattern: Path,
+    cameras: Sequence[CameraModel],
+    n_frames: int,
+    start_number: int = 1,
+    image_extension: str = ".png",
+    colmap_executable: str = "colmap",
+    use_gpu: str = "1",
+    refine_init_pose: bool = False,
+    reestimate_init_pose: bool = False,
+) -> None:
+    """Optimize poses on the first frame and reuse them for the remaining frames."""
+    if refine_init_pose == reestimate_init_pose:
+        raise ValueError("Set exactly one of refine_init_pose and reestimate_init_pose")
+    if n_frames < 1:
+        return
+
+    output_pattern = str(output_pattern)
+    first_folder = Path(output_pattern % start_number)
+    run_colmap(
+        folder=first_folder,
+        cameras=cameras,
+        image_extension=image_extension,
+        colmap_executable=colmap_executable,
+        use_gpu=use_gpu,
+        refine_pose=refine_init_pose,
+        reestimate_pose=reestimate_init_pose,
+    )
+    if n_frames == 1:
+        return
+    if model_converter_txt(str(first_folder), colmap_executable=colmap_executable) != 0:
+        raise RuntimeError("Model conversion failed")
+
+    source_model = first_folder / "distorted" / "sparse" / "0"
+    image_names = [f"{camera.name}{image_extension}" for camera in cameras]
+    for frame in range(start_number + 1, start_number + n_frames):
+        copy_colmap(
+            folder=Path(output_pattern % frame),
+            source_model=source_model,
+            image_names=image_names,
+            colmap_executable=colmap_executable,
+            use_gpu=use_gpu,
         )

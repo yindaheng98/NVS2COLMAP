@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from nvs2colmap.colmap import run_video_colmap
+from nvs2colmap.colmap import run_video_colmap, run_video_colmap_refine_poses
 from nvs2colmap.write_model import write_video_colmap_text_model
 
 from .cameras import read_camera_meta
@@ -79,19 +79,20 @@ def parse_args() -> argparse.Namespace:
         help="Whether COLMAP SIFT extraction/matching should use GPU when --use-colmap is set.",
     )
     parser.add_argument(
-        "--refine-poses",
+        "--refine-init-pose",
         action="store_true",
         help=(
-            "After triangulation, bundle-adjust the given camera poses. "
-            "Intrinsics stay fixed. Requires --use-colmap."
+            "On the first frame, bundle-adjust the given camera poses and reuse "
+            "them for later frames. Intrinsics stay fixed. Requires --use-colmap."
         ),
     )
     parser.add_argument(
-        "--reestimate-poses",
+        "--reestimate-init-pose",
         action="store_true",
         help=(
-            "Run COLMAP mapper from scratch, using the given camera centers "
-            "as a soft position prior. Poses can still move. Requires --use-colmap."
+            "On the first frame, run COLMAP mapper from scratch, using the given "
+            "camera centers as a soft position prior. Later frames reuse those "
+            "poses. Requires --use-colmap."
         ),
     )
     args = parser.parse_args()
@@ -101,12 +102,12 @@ def parse_args() -> argparse.Namespace:
         parser.error("--n-frames must be at least 1.")
     if args.start_number < 1:
         parser.error("--start-number must be at least 1.")
-    if args.refine_poses and not args.use_colmap:
-        parser.error("--refine-poses requires --use-colmap.")
-    if args.reestimate_poses and not args.use_colmap:
-        parser.error("--reestimate-poses requires --use-colmap.")
-    if args.refine_poses and args.reestimate_poses:
-        parser.error("Cannot set both --refine-poses and --reestimate-poses.")
+    if args.refine_init_pose and not args.use_colmap:
+        parser.error("--refine-init-pose requires --use-colmap.")
+    if args.reestimate_init_pose and not args.use_colmap:
+        parser.error("--reestimate-init-pose requires --use-colmap.")
+    if args.refine_init_pose and args.reestimate_init_pose:
+        parser.error("Cannot set both --refine-init-pose and --reestimate-init-pose.")
     return args
 
 
@@ -166,7 +167,7 @@ def main() -> None:
             output_numbers=output_numbers,
         )
     else:
-        run_video_colmap(
+        colmap_kwargs = dict(
             output_pattern=frame_output_pattern,
             cameras=colmap_cameras,
             n_frames=n_frames,
@@ -174,9 +175,15 @@ def main() -> None:
             image_extension="",
             colmap_executable=args.colmap_executable,
             use_gpu=args.colmap_use_gpu,
-            refine_poses=args.refine_poses,
-            reestimate_poses=args.reestimate_poses,
         )
+        if args.refine_init_pose or args.reestimate_init_pose:
+            run_video_colmap_refine_poses(
+                refine_init_pose=args.refine_init_pose,
+                reestimate_init_pose=args.reestimate_init_pose,
+                **colmap_kwargs,
+            )
+        else:
+            run_video_colmap(**colmap_kwargs)
 
     print(f"Done: {folder}")
 
