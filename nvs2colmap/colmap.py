@@ -184,6 +184,43 @@ def read_colmap_image_cameras(model_dir: Path) -> dict[str, tuple[str, str]]:
     return images
 
 
+def cameras_from_colmap_model(
+    cameras: Sequence[CameraModel],
+    model_dir: Path,
+    image_extension: str = ".png",
+) -> list[CameraModel]:
+    """Override intrinsics and poses from a COLMAP text model, matched by image name."""
+    specs = read_colmap_image_cameras(model_dir)
+    replaced = []
+    missing = []
+    for camera in cameras:
+        image_name = f"{camera.name}{image_extension}"
+        if image_name not in specs:
+            missing.append(image_name)
+            continue
+        spec, pose = specs[image_name]
+        model, width, height, fx, fy, cx, cy = spec.split()
+        if model != "PINHOLE":
+            raise RuntimeError(f"{model_dir} camera for {image_name} is {model}, expected PINHOLE")
+        qw, qx, qy, qz, tx, ty, tz = (float(value) for value in pose.split())
+        replaced.append(
+            CameraModel(
+                name=camera.name,
+                width=int(float(width)),
+                height=int(float(height)),
+                fx=float(fx),
+                fy=float(fy),
+                cx=float(cx),
+                cy=float(cy),
+                qvec=np.array([qw, qx, qy, qz]),
+                tvec=np.array([tx, ty, tz]),
+            )
+        )
+    if missing:
+        raise RuntimeError(f"{model_dir} is missing images: {missing}")
+    return replaced
+
+
 def copy_colmap(
     folder: Path,
     source_model: Path,

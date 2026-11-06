@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from nvs2colmap.colmap import run_video_colmap, run_video_colmap_refine_poses
+from nvs2colmap.colmap import cameras_from_colmap_model, run_video_colmap, run_video_colmap_refine_poses
 from nvs2colmap.write_model import write_video_colmap_text_model
 
 from .extract_videos import count_frame_dirs, extract_videos
@@ -97,6 +97,14 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--cameras",
+        type=Path,
+        help=(
+            "COLMAP model directory with cameras.txt and images.txt. "
+            "When set, its intrinsics and poses replace poses_bounds.npy."
+        ),
+    )
+    parser.add_argument(
         "--reestimate-init-pose",
         action="store_true",
         help=(
@@ -120,6 +128,8 @@ def main() -> None:
     folder = args.path.resolve()
 
     cameras = read_poses_bounds(folder, args.video_extension)
+    if args.cameras:
+        cameras = cameras_from_colmap_model(cameras, args.cameras, args.image_extension)
 
     n_frames = args.n_frames
     frame_output_pattern = folder / "frame%d"
