@@ -8,6 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from PIL import Image
 
 from nvs2colmap.utils import matrix_to_quaternion
 from nvs2colmap.write_model import CameraModel
@@ -20,6 +21,13 @@ class ParsedCamera:
     view: str
     frames: dict[int, Path]
     dist: np.ndarray | None = None
+
+
+def read_jpeg_size(path: Path) -> tuple[int, int]:
+    """Return width and height. Pillow reads the JPEG header and does not decode pixels."""
+    with Image.open(path) as image:
+        width, height = image.size
+    return int(width), int(height)
 
 
 def parse_opencv_yaml(path: Path) -> dict:
@@ -122,12 +130,13 @@ def read_split(
             coeffs = np.asarray(intri[f"D_{view}"], dtype=np.float64).reshape(-1)
             if np.any(coeffs):
                 dist = coeffs
+        width, height = read_jpeg_size(frames[min(frames)])
         cameras.append(
             ParsedCamera(
                 camera=CameraModel(
                     name=f"{view}.jpg",
-                    width=int(intri[f"W_{view}"]),
-                    height=int(intri[f"H_{view}"]),
+                    width=width,
+                    height=height,
                     fx=float(intrinsic[0, 0]),
                     fy=float(intrinsic[1, 1]),
                     cx=float(intrinsic[0, 2]),

@@ -22,7 +22,7 @@ then log in with `hf auth login`.
 Runtime dependencies:
 
 ```bash
-pip install numpy torch
+pip install numpy pillow torch
 pip install -U huggingface_hub
 ```
 
@@ -231,8 +231,9 @@ Each YAML pair stores:
 
 - `names`: view ids, such as `00` and `01`.
 - `K_<view>`: 3 x 3 intrinsic matrix. `fx`, `fy`, `cx`, and `cy` are read from
-  it.
-- `H_<view>`, `W_<view>`: image height and width.
+  it. Image width and height come from the JPEG, not from `W_<view>` and
+  `H_<view>`. COLMAP 3.13 rejects a model whose camera size does not match the
+  image file.
 - `R_<view>`: Rodrigues rotation of the world-to-camera pose.
 - `T_<view>`: world-to-camera translation. The pose is already in the COLMAP
   camera convention.

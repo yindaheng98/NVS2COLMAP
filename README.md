@@ -49,7 +49,7 @@ Utilities for converting novel view synthesis datasets to COLMAP format.
 Install the Python runtime dependencies:
 
 ```bash
-pip install numpy plyfile torch
+pip install numpy pillow plyfile torch
 ```
 
 Download FFmpeg 7.0.2-static and place `ffmpeg` and `ffprobe` in `data/`:
