@@ -20,6 +20,7 @@ from nvs2colmap.utils.colmap import (
     point_triangulator,
     pose_prior_mapper,
     read_db,
+    write_camera_intrinsics,
     write_pose_priors,
 )
 
@@ -87,6 +88,13 @@ def run_colmap(
             f"{camera.name}{image_extension}": camera_center(camera)
             for camera in cameras
         }
+        write_camera_intrinsics(
+            str(folder),
+            {
+                f"{camera.name}{image_extension}": (camera.fx, camera.fy, camera.cx, camera.cy)
+                for camera in cameras
+            },
+        )
         write_pose_priors(
             str(folder),
             {name: tuple(center) for name, center in centers.items()},

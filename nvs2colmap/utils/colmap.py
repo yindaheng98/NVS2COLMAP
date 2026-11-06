@@ -86,6 +86,45 @@ def bundle_adjuster(model_path, colmap_executable="colmap"):
     return execute(cmd)
 
 
+def write_camera_intrinsics(folder, intrinsics):
+    """Store dataset PINHOLE intrinsics and mark the focal length as a prior.
+
+    ``intrinsics`` maps an image name to ``(fx, fy, cx, cy)``. Each image has
+    its own camera because extraction uses ``single_camera_per_image``.
+    """
+    conn = sqlite3.connect(os.path.join(folder, "distorted", "database.db"))
+    c = conn.cursor()
+    c.execute("SELECT camera_id, name FROM main.images")
+    camera_ids = {name: camera_id for camera_id, name in c.fetchall()}
+    missing = sorted(set(intrinsics) - set(camera_ids))
+    if missing:
+        conn.close()
+        raise RuntimeError(f"Intrinsic images are missing from the database: {missing}")
+    c.execute("SELECT camera_id, model FROM cameras")
+    models = {camera_id: model for camera_id, model in c.fetchall()}
+    # COLMAP's PINHOLE model id is 1, with parameters fx, fy, cx, cy.
+    not_pinhole = sorted(name for name in intrinsics if models.get(camera_ids[name]) != 1)
+    if not_pinhole:
+        conn.close()
+        raise RuntimeError(f"Database cameras are not PINHOLE: {not_pinhole}")
+    rows = []
+    seen = {}
+    for name, (fx, fy, cx, cy) in intrinsics.items():
+        camera_id = camera_ids[name]
+        params = (float(fx), float(fy), float(cx), float(cy))
+        previous = seen.setdefault(camera_id, params)
+        if previous != params:
+            conn.close()
+            raise RuntimeError(f"Camera {camera_id} is shared by images with different intrinsics.")
+        rows.append((struct.pack("<4d", *params), 1, camera_id))
+    c.executemany(
+        "UPDATE cameras SET params=?, prior_focal_length=? WHERE camera_id=?",
+        rows,
+    )
+    conn.commit()
+    conn.close()
+
+
 def write_pose_priors(folder, positions):
     """Store camera-center priors. COLMAP treats them as soft constraints.
 
