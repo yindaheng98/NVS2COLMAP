@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-BASESKIP=1
+BASESKIP=10
 ./nvs2colmap/dynamic3dgs/reset_dynamic3dgs.sh \
     --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" --refine-init-pose  \
     --frame-skip $((1 * BASESKIP))
@@ -16,14 +16,6 @@ BASESKIP=1
     --ffmpeg data/ffmpeg --ffprobe data/ffprobe --ffmpeg-processes 16 \
     --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
     --frame-skip $((1 * BASESKIP))
-./nvs2colmap/n3dv/reset_Robo360batch1.sh \
-    --ffmpeg data/ffmpeg --ffprobe data/ffprobe --ffmpeg-processes 16 \
-    --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
-    --frame-skip $((1 * BASESKIP)) --n-frames $((300 / BASESKIP))
-./nvs2colmap/n3dv/reset_Robo360batch2.sh \
-    --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
-    --ffmpeg data/ffmpeg --ffprobe data/ffprobe --ffmpeg-processes 16 \
-    --frame-skip $((6 * BASESKIP)) --n-frames $((300 / BASESKIP))
 reset_streamrf() {
     rm -rf data/discussion data/trimming data/stepin data/vrheadset
     unzip -d data data/discussion.zip
@@ -41,3 +33,11 @@ reset_streamrf \
     --ffmpeg data/ffmpeg --ffprobe data/ffprobe --ffmpeg-processes 16 \
     --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
     --frame-skip $((1 * BASESKIP))
+./nvs2colmap/n3dv/reset_Robo360batch1.sh \
+    --ffmpeg data/ffmpeg --ffprobe data/ffprobe --ffmpeg-processes 16 \
+    --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
+    --frame-skip $((1 * BASESKIP)) --n-frames $((300 / BASESKIP))
+./nvs2colmap/n3dv/reset_Robo360batch2.sh \
+    --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
+    --ffmpeg data/ffmpeg --ffprobe data/ffprobe --ffmpeg-processes 16 \
+    --frame-skip $((6 * BASESKIP)) --n-frames $((300 / BASESKIP))
