@@ -6,6 +6,7 @@ import argparse
 from pathlib import Path
 
 from nvs2colmap.colmap import run_video_colmap, run_video_colmap_refine_poses
+from nvs2colmap.utils import select_frame_indices
 from nvs2colmap.write_model import write_video_colmap_text_model
 
 from .camera_meta import read_camera_meta
@@ -29,13 +30,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--n-frames",
         type=int,
-        help="Number of frames to extract and write. Defaults to the frames listed in the camera metadata.",
+        help=(
+            "Number of frames to extract and write after --frame-skip. Defaults to "
+            "every kept frame from --start-number through the last frame. A value "
+            "past the frames that remain writes those frames."
+        ),
     )
     parser.add_argument(
         "--start-number",
         type=int,
         default=1,
         help="1-based source frame to start extracting from; output frame folders use the same starting number.",
+    )
+    parser.add_argument(
+        "--frame-skip",
+        type=int,
+        default=1,
+        help="Keep every Nth source frame after --start-number. 1 keeps every frame.",
     )
     parser.add_argument(
         "--no-train-camera",
@@ -91,6 +102,12 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     if args.no_train_camera and args.no_test_camera:
         parser.error("Cannot set both --no-train-camera and --no-test-camera.")
+    if args.n_frames is not None and args.n_frames < 1:
+        parser.error("--n-frames must be at least 1.")
+    if args.start_number < 1:
+        parser.error("--start-number must be at least 1.")
+    if args.frame_skip < 1:
+        parser.error("--frame-skip must be at least 1.")
     if args.refine_init_pose and not args.use_colmap:
         parser.error("--refine-init-pose requires --use-colmap.")
     if args.reestimate_init_pose and not args.use_colmap:
@@ -114,20 +131,24 @@ def main() -> None:
     frame_output_pattern = folder / "frame%d"
     image_dir_name = "input" if args.use_colmap else "images"
     mask_dir_name = "input_mask" if args.use_colmap else "image_masks"
+    if args.skip_frame_linking and n_frames is None:
+        n_frames = count_frame_dirs(frame_output_pattern, start_number=args.start_number)
+    frame_skip = 1 if args.skip_frame_linking else args.frame_skip
+    frame_indices = select_frame_indices(
+        range(available_frames), args.start_number, n_frames, frame_skip
+    )
+    output_numbers = list(range(args.start_number, args.start_number + len(frame_indices)))
+    n_frames = len(frame_indices)
     if not args.skip_frame_linking:
-        if n_frames is None:
-            n_frames = available_frames - args.start_number + 1
         link_frames(
             folder=folder,
             frame_pattern=frame_output_pattern,
             cameras=cameras,
-            n_frames=n_frames,
-            start_number=args.start_number,
+            frame_indices=frame_indices,
+            output_numbers=output_numbers,
             image_dirname=image_dir_name,
             mask_dirname=mask_dir_name,
         )
-    elif n_frames is None:
-        n_frames = count_frame_dirs(frame_output_pattern, start_number=args.start_number)
 
     colmap_cameras = [camera.camera for camera in cameras]
     if not args.use_colmap:

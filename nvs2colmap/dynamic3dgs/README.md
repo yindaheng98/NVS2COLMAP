@@ -182,14 +182,19 @@ python -m nvs2colmap.dynamic3dgs \
 
 - `--path`: scene directory containing `train_meta.json`, `test_meta.json`,
   `ims/`, and `seg/`.
-- `--n-frames`: number of frames to extract and write. If omitted, every frame
-  listed in the camera metadata is used. If omitted with `--skip-frame-linking`,
-  frame directories are counted from `frame%d`.
+- `--n-frames`: number of frames to extract and write after `--frame-skip`.
+  If omitted, every kept frame from `--start-number` through the last frame
+  in the camera metadata is used. A value past the frames that remain writes
+  those frames. If omitted with `--skip-frame-linking`, frame directories are
+  counted from `frame%d`.
 - `--no-train-camera`: skip cameras listed in `train_meta.json`.
 - `--no-test-camera`: skip cameras listed in `test_meta.json`.
 - `--start-number`: 1-based source frame index to start from, default `1`.
   Output `frame%d` folders use the same numbering. Source file `000000.jpg` is
   frame `1`.
+- `--frame-skip`: keep every Nth source frame after `--start-number`, default
+  `1`. Output `frame%d` folders stay contiguous from `--start-number`.
+  `--skip-frame-linking` reuses the folders already on disk and ignores this.
 - `--skip-frame-linking`: keep existing frame images and masks, and skip
   hardlinking. In the default mode this reuses `frame*/images`; with
   `--use-colmap` it reuses `frame*/input`.

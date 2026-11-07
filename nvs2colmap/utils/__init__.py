@@ -14,6 +14,7 @@ from .colmap import (
     read_db,
 )
 from .ffmpeg import count_video_frames, extract_video_frames, extract_video_frames_parallel
+from .frames import select_frame_indices
 from .rotation import matrix_to_quaternion, standardize_quaternion
 
 __all__ = [
@@ -32,5 +33,6 @@ __all__ = [
     "model_converter_txt",
     "point_triangulator",
     "read_db",
+    "select_frame_indices",
     "standardize_quaternion",
 ]

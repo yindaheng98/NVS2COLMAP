@@ -7,6 +7,8 @@ import shutil
 import zipfile
 from pathlib import Path
 
+from nvs2colmap.utils import select_frame_indices
+
 
 def count_frame_dirs(output_pattern: Path, start_number: int = 1) -> int:
     output_pattern = str(output_pattern)
@@ -47,6 +49,7 @@ def extract_zip(
     image_dirname: str,
     start_number: int = 1,
     n_frames: int | None = None,
+    frame_skip: int = 1,
 ) -> int:
     folder = Path(folder)
     archive_path = find_zip(folder)
@@ -73,14 +76,15 @@ def extract_zip(
             extract_member(archive, member, folder / "pose" / name)
 
         frame_ids = {frame for frame, _ in images}
-        if n_frames is None:
-            if not frame_ids:
-                raise FileNotFoundError(f"No frame images in {archive_path}")
-            n_frames = max(frame_ids) - start_number + 1
-        for frame in range(start_number, start_number + n_frames):
+        if not frame_ids:
+            raise FileNotFoundError(f"No frame images in {archive_path}")
+        # Frame folders are frame1, frame2, ... so the 1-based position is the frame id.
+        selected = select_frame_indices(range(1, max(frame_ids) + 1), start_number, n_frames, frame_skip)
+        output_numbers = range(start_number, start_number + len(selected))
+        for frame, output_number in zip(selected, output_numbers):
             members = {filename: member for (frame_id, filename), member in images.items() if frame_id == frame}
             if not members:
                 raise FileNotFoundError(f"Missing frame{frame}/images in {archive_path}")
             for filename, member in members.items():
-                extract_member(archive, member, folder / f"frame{frame}" / image_dirname / filename)
-    return n_frames
+                extract_member(archive, member, folder / f"frame{output_number}" / image_dirname / filename)
+    return len(selected)

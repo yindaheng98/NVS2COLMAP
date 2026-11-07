@@ -6,10 +6,11 @@ import argparse
 from pathlib import Path
 
 from nvs2colmap.colmap import run_video_colmap, run_video_colmap_refine_poses
+from nvs2colmap.utils import select_frame_indices
 from nvs2colmap.write_model import write_video_colmap_text_model
 
 from .cameras import parse_camera_numbers, read_camera_meta
-from .link_frames import count_frame_dirs, link_frames, select_frame_indices
+from .link_frames import count_frame_dirs, link_frames
 from .points import link_point_clouds
 from .undistort import undistort_frames
 
@@ -31,8 +32,9 @@ def parse_args() -> argparse.Namespace:
         "--n-frames",
         type=int,
         help=(
-            "Number of frames to extract and write. Defaults to every frame from "
-            "--start-number through the last frame."
+            "Number of frames to extract and write after --frame-skip. Defaults to "
+            "every kept frame from --start-number through the last frame. A value "
+            "past the frames that remain writes those frames."
         ),
     )
     parser.add_argument(
@@ -40,6 +42,12 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=1,
         help="1-based position in the frames on disk. The first file is frame1.",
+    )
+    parser.add_argument(
+        "--frame-skip",
+        type=int,
+        default=1,
+        help="Keep every Nth source frame after --start-number. 1 keeps every frame.",
     )
     parser.add_argument(
         "--no-train-camera",
@@ -117,6 +125,8 @@ def parse_args() -> argparse.Namespace:
         parser.error("--n-frames must be at least 1.")
     if args.start_number < 1:
         parser.error("--start-number must be at least 1.")
+    if args.frame_skip < 1:
+        parser.error("--frame-skip must be at least 1.")
     if args.refine_init_pose and not args.use_colmap:
         parser.error("--refine-init-pose requires --use-colmap.")
     if args.reestimate_init_pose and not args.use_colmap:
@@ -152,7 +162,10 @@ def main() -> None:
     n_frames = args.n_frames
     if args.skip_frame_linking and n_frames is None:
         n_frames = count_frame_dirs(folder / "frame%d", start_number=start_number)
-    frame_indices = select_frame_indices(available_frames, start_number, n_frames)
+    frame_skip = 1 if args.skip_frame_linking else args.frame_skip
+    frame_indices = select_frame_indices(
+        available_frames, start_number, n_frames, frame_skip
+    )
     output_numbers = list(range(start_number, start_number + len(frame_indices)))
 
     frame_output_pattern = folder / "frame%d"

@@ -314,6 +314,15 @@ python -m nvs2colmap.SiggraphAsia2026VVC \
   --n-frames 20
 ```
 
+Keep every third source frame. Output folders stay `frame1`, `frame2`, ...:
+
+```bash
+python -m nvs2colmap.SiggraphAsia2026VVC \
+  --path data/SiggraphAsia2026VVC/selfcap/sparse/test/0512_bike \
+  --frame-skip 3 \
+  --n-frames 300
+```
+
 `selfcap` sparse scenes such as `0512_bike` have no `masks/` and no
 `test_*.yml`. The released frames are `000900.jpg` through `001799.jpg`, and
 the default command writes them as `frame1` through `frame900`:
@@ -371,9 +380,11 @@ python -m nvs2colmap.SiggraphAsia2026VVC \
 
 - `--path`: scene directory containing `images/`, `train_intri.yml`, and
   `train_extri.yml`.
-- `--n-frames`: number of frames to extract and write. If omitted, every frame
-  from `--start-number` through the last frame on disk is used. If omitted
-  with `--skip-frame-linking`, frame directories are counted from `frame%d`.
+- `--n-frames`: number of frames to extract and write after `--frame-skip`.
+  If omitted, every kept frame from `--start-number` through the last frame
+  on disk is used. A value past the frames that remain writes those frames.
+  If omitted with `--skip-frame-linking`, frame directories are counted from
+  `frame%d`.
 - `--no-train-camera`: skip cameras listed in `train_intri.yml` and
   `train_extri.yml`.
 - `--no-test-camera`: skip cameras listed in `test_intri.yml` and
@@ -388,6 +399,9 @@ python -m nvs2colmap.SiggraphAsia2026VVC \
   left out.
 - `--start-number`: 1-based position in the frames on disk, default `1`.
   Output `frame%d` uses that same count. The first file is `frame1`.
+- `--frame-skip`: keep every Nth source frame after `--start-number`, default
+  `1`. Output `frame%d` folders stay contiguous from `--start-number`.
+  `--skip-frame-linking` reuses the folders already on disk and ignores this.
 - `--skip-frame-linking`: keep existing frame images and masks, and skip
   hardlinking and the distortion undistortion. A zero-distortion scene reuses
   `frame*/images`, or `frame*/input` with `--use-colmap`. A scene with nonzero

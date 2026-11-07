@@ -33,16 +33,15 @@ def link_frames(
     folder: Path,
     frame_pattern: Path,
     cameras: Sequence[ParsedCameraMeta],
-    n_frames: int,
-    start_number: int = 1,
+    frame_indices: Sequence[int],
+    output_numbers: Sequence[int],
     image_dirname: str = "images",
     mask_dirname: str = "image_masks",
 ) -> None:
     folder = Path(folder)
     frame_pattern = str(frame_pattern)
-    for offset in range(n_frames):
-        frame_index = start_number - 1 + offset
-        frame_dir = Path(frame_pattern % (start_number + offset))
+    for frame_index, output_number in zip(frame_indices, output_numbers):
+        frame_dir = Path(frame_pattern % output_number)
         image_dir = frame_dir / image_dirname
         mask_dir = frame_dir / mask_dirname
         for camera in cameras:

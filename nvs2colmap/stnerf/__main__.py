@@ -28,13 +28,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--n-frames",
         type=int,
-        help="Number of frames to extract and write. Defaults to the frames in the zip when extracting.",
+        help=(
+            "Number of frames to extract and write after --frame-skip. Defaults to "
+            "every kept frame from --start-number through the last frame. A value "
+            "past the frames that remain writes those frames."
+        ),
     )
     parser.add_argument(
         "--start-number",
         type=int,
         default=1,
         help="1-based source frame to start from. frame1 is frame 1.",
+    )
+    parser.add_argument(
+        "--frame-skip",
+        type=int,
+        default=1,
+        help="Keep every Nth source frame after --start-number. 1 keeps every frame.",
     )
     parser.add_argument(
         "--skip-zip-extraction",
@@ -78,6 +88,12 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     args = parser.parse_args()
+    if args.n_frames is not None and args.n_frames < 1:
+        parser.error("--n-frames must be at least 1.")
+    if args.start_number < 1:
+        parser.error("--start-number must be at least 1.")
+    if args.frame_skip < 1:
+        parser.error("--frame-skip must be at least 1.")
     if args.refine_init_pose and not args.use_colmap:
         parser.error("--refine-init-pose requires --use-colmap.")
     if args.reestimate_init_pose and not args.use_colmap:
@@ -100,6 +116,7 @@ def main() -> None:
             image_dirname=image_dir_name,
             start_number=args.start_number,
             n_frames=n_frames,
+            frame_skip=args.frame_skip,
         )
     elif n_frames is None:
         n_frames = count_frame_dirs(frame_output_pattern, start_number=args.start_number)

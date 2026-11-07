@@ -20,28 +20,6 @@ def count_frame_dirs(output_pattern: Path, start_number: int = 1) -> int:
     return n_frames
 
 
-def select_frame_indices(
-    frame_indices: Sequence[int],
-    start_number: int,
-    n_frames: int | None,
-) -> list[int]:
-    available = sorted(frame_indices)
-    if start_number > len(available):
-        raise FileNotFoundError(
-            f"--start-number {start_number} is past the {len(available)} frames on disk "
-            f"({available[0]:06d} through {available[-1]:06d})."
-        )
-    selected = available[start_number - 1 :]
-    if n_frames is not None:
-        if n_frames > len(selected):
-            raise FileNotFoundError(
-                f"--n-frames {n_frames} runs past the {len(selected)} frames "
-                f"left from frame {start_number}."
-            )
-        selected = selected[:n_frames]
-    return selected
-
-
 def link_file(src: Path, dst: Path) -> None:
     dst.parent.mkdir(parents=True, exist_ok=True)
     if dst.exists():

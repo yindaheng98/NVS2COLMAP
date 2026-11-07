@@ -216,12 +216,16 @@ python -m nvs2colmap.stnerf \
 
 - `--path`: scene directory containing one zip file. With
   `--skip-zip-extraction`, it contains `pose/` and the extracted frame images.
-- `--n-frames`: number of frames to extract and write. If omitted while
-  extracting, frames run from `--start-number` through the last frame in the
-  zip. If omitted with `--skip-zip-extraction`, frame directories are counted
-  from `frame%d`.
+- `--n-frames`: number of frames to extract and write after `--frame-skip`.
+  If omitted while extracting, every kept frame from `--start-number` through
+  the last frame in the zip is used. A value past the frames that remain writes
+  those frames. If omitted with `--skip-zip-extraction`, frame directories are
+  counted from `frame%d`.
 - `--start-number`: 1-based source frame to start from, default `1`. `frame1`
   is frame `1`.
+- `--frame-skip`: keep every Nth source frame after `--start-number`, default
+  `1`. Output `frame%d` folders stay contiguous from `--start-number`.
+  `--skip-zip-extraction` reuses the folders already on disk and ignores this.
 - `--skip-zip-extraction`: keep existing extracted frames and skip the zip.
   In the default mode this reuses `frame*/images`; with `--use-colmap` it
   reuses `frame*/input`.
