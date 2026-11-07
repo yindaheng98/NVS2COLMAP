@@ -11,9 +11,9 @@ unzip -d data data/cut_roasted_beef.zip
 unzip -d data data/flame_steak.zip
 unzip -d data data/sear_steak.zip
 unzip -d data data/flame_salmon_1.zip
-python -m nvs2colmap.n3dv --path data/coffee_martini --n-frames 300 "$@"
-python -m nvs2colmap.n3dv --path data/cook_spinach --n-frames 300 "$@"
-python -m nvs2colmap.n3dv --path data/cut_roasted_beef --n-frames 300 "$@"
-python -m nvs2colmap.n3dv --path data/flame_salmon_1 --n-frames 1200 "$@"
-python -m nvs2colmap.n3dv --path data/flame_steak --n-frames 300 "$@"
-python -m nvs2colmap.n3dv --path data/sear_steak --n-frames 300 "$@"
+python -m nvs2colmap.n3dv --path data/coffee_martini "$@"
+python -m nvs2colmap.n3dv --path data/cook_spinach "$@"
+python -m nvs2colmap.n3dv --path data/cut_roasted_beef "$@"
+python -m nvs2colmap.n3dv --path data/flame_salmon_1 "$@"
+python -m nvs2colmap.n3dv --path data/flame_steak "$@"
+python -m nvs2colmap.n3dv --path data/sear_steak "$@"
