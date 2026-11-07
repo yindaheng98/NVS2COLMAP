@@ -1,27 +1,29 @@
 #!/bin/bash
 set -e
+BASESKIP=1
 ./nvs2colmap/dynamic3dgs/reset_dynamic3dgs.sh \
-    --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
-    --refine-init-pose
+    --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" --refine-init-pose  \
+    --frame-skip $((1 * BASESKIP))
 
 ./nvs2colmap/SiggraphAsia2026VVC/reset_SiggraphAsia2026VVC_selfcap.sh \
     --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
-    --frame-skip 3 --n-frames 300
+    --frame-skip $((3 * BASESKIP))
 ./nvs2colmap/SiggraphAsia2026VVC/reset_SiggraphAsia2026VVC_siga.sh \
     --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
-    --frame-skip 2 --n-frames 300
+    --frame-skip $((2 * BASESKIP))
 
 ./nvs2colmap/n3dv/reset_n3dv.sh \
     --ffmpeg data/ffmpeg --ffprobe data/ffprobe \
-    --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap"
+    --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
+    --frame-skip $((1 * BASESKIP))
 ./nvs2colmap/n3dv/reset_Robo360batch1.sh \
     --ffmpeg data/ffmpeg --ffprobe data/ffprobe \
     --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
-    --n-frames 300
+    --frame-skip $((1 * BASESKIP)) --n-frames $((300 / BASESKIP))
 ./nvs2colmap/n3dv/reset_Robo360batch2.sh \
     --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
     --ffmpeg data/ffmpeg --ffprobe data/ffprobe  \
-    --frame-skip 6 --n-frames 300
+    --frame-skip $((6 * BASESKIP)) --n-frames $((300 / BASESKIP))
 reset_streamrf() {
     rm -rf data/discussion data/trimming data/stepin data/vrheadset
     unzip -d data data/discussion.zip
@@ -37,4 +39,5 @@ reset_streamrf() {
 }
 reset_streamrf \
     --ffmpeg data/ffmpeg --ffprobe data/ffprobe \
-    --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap"
+    --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
+    --frame-skip $((1 * BASESKIP))
