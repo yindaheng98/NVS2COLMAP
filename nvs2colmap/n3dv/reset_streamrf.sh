@@ -5,7 +5,7 @@ unzip -d data data/discussion.zip
 unzip -d data data/trimming.zip
 unzip -d data data/stepin.zip
 unzip -d data data/vrheadset.zip
-python -m nvs2colmap.n3dv --path data/discussion --n-frames 300 "$@"
-python -m nvs2colmap.n3dv --path data/trimming --n-frames 300 "$@"
-python -m nvs2colmap.n3dv --path data/stepin --n-frames 300 "$@"
-python -m nvs2colmap.n3dv --path data/vrheadset --n-frames 300 "$@"
+python -m nvs2colmap.n3dv --path data/discussion "$@"
+python -m nvs2colmap.n3dv --path data/trimming "$@"
+python -m nvs2colmap.n3dv --path data/stepin "$@"
+python -m nvs2colmap.n3dv --path data/vrheadset "$@"
