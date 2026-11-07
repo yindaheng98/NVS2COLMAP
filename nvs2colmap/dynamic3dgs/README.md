@@ -142,7 +142,7 @@ python -m nvs2colmap.dynamic3dgs \
   --n-frames 150
 ```
 
-Start from source frame 10 and keep output frame numbering aligned with it:
+Start from source frame 10. Output folders are still `frame1`, `frame2`, ...:
 
 ```bash
 python -m nvs2colmap.dynamic3dgs \
@@ -170,14 +170,6 @@ python -m nvs2colmap.dynamic3dgs \
   --no-test-camera
 ```
 
-Reuse existing linked frame images:
-
-```bash
-python -m nvs2colmap.dynamic3dgs \
-  --path data/basketball \
-  --skip-frame-linking
-```
-
 ## Important Options
 
 - `--path`: scene directory containing `train_meta.json`, `test_meta.json`,
@@ -185,19 +177,14 @@ python -m nvs2colmap.dynamic3dgs \
 - `--n-frames`: number of frames to extract and write after `--frame-skip`.
   If omitted, every kept frame from `--start-number` through the last frame
   in the camera metadata is used. A value past the frames that remain writes
-  those frames. If omitted with `--skip-frame-linking`, frame directories are
-  counted from `frame%d`.
+  those frames.
 - `--no-train-camera`: skip cameras listed in `train_meta.json`.
 - `--no-test-camera`: skip cameras listed in `test_meta.json`.
 - `--start-number`: 1-based source frame index to start from, default `1`.
-  Output `frame%d` folders use the same numbering. Source file `000000.jpg` is
-  frame `1`.
+  Source file `000000.jpg` is source frame 1. Output folders are renumbered
+  from `frame1`.
 - `--frame-skip`: keep every Nth source frame after `--start-number`, default
-  `1`. Output `frame%d` folders stay contiguous from `--start-number`.
-  `--skip-frame-linking` reuses the folders already on disk and ignores this.
-- `--skip-frame-linking`: keep existing frame images and masks, and skip
-  hardlinking. In the default mode this reuses `frame*/images`; with
-  `--use-colmap` it reuses `frame*/input`.
+  `1`. Output folders stay `frame1`, `frame2`, ...
 - `--use-colmap`: run the full COLMAP pipeline instead of only writing
   `sparse/0` text models.
 - `--colmap-executable`: path to the COLMAP executable used with

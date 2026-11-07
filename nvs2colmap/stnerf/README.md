@@ -203,32 +203,16 @@ python -m nvs2colmap.stnerf \
   --colmap-use-gpu 1
 ```
 
-Reuse frames already extracted from the zip:
-
-```bash
-python -m nvs2colmap.stnerf \
-  --path data/walking \
-  --skip-zip-extraction \
-  --use-colmap
-```
-
 ## Important Options
 
-- `--path`: scene directory containing one zip file. With
-  `--skip-zip-extraction`, it contains `pose/` and the extracted frame images.
+- `--path`: scene directory containing one zip file.
 - `--n-frames`: number of frames to extract and write after `--frame-skip`.
-  If omitted while extracting, every kept frame from `--start-number` through
-  the last frame in the zip is used. A value past the frames that remain writes
-  those frames. If omitted with `--skip-zip-extraction`, frame directories are
-  counted from `frame%d`.
+  If omitted, every kept frame from `--start-number` through the last frame
+  in the zip is used. A value past the frames that remain writes those frames.
 - `--start-number`: 1-based source frame to start from, default `1`. `frame1`
-  is frame `1`.
+  in the zip is source frame 1. Output folders are renumbered from `frame1`.
 - `--frame-skip`: keep every Nth source frame after `--start-number`, default
-  `1`. Output `frame%d` folders stay contiguous from `--start-number`.
-  `--skip-zip-extraction` reuses the folders already on disk and ignores this.
-- `--skip-zip-extraction`: keep existing extracted frames and skip the zip.
-  In the default mode this reuses `frame*/images`; with `--use-colmap` it
-  reuses `frame*/input`.
+  `1`. Output folders stay `frame1`, `frame2`, ...
 - `--use-colmap`: run the full COLMAP pipeline instead of only writing
   `sparse/0` text models.
 - `--colmap-executable`: path to the COLMAP executable used with

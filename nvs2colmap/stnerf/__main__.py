@@ -8,7 +8,7 @@ from pathlib import Path
 from nvs2colmap.colmap import run_video_colmap, run_video_colmap_refine_poses
 from nvs2colmap.write_model import write_video_colmap_text_model
 
-from .extract import count_frame_dirs, extract_zip
+from .extract import extract_zip
 from .pose import read_cameras
 
 
@@ -23,7 +23,7 @@ def parse_args() -> argparse.Namespace:
         "--path",
         type=Path,
         required=True,
-        help="Scene directory containing one zip file, or extracted pose/ and frame images.",
+        help="Scene directory containing one zip file.",
     )
     parser.add_argument(
         "--n-frames",
@@ -38,18 +38,13 @@ def parse_args() -> argparse.Namespace:
         "--start-number",
         type=int,
         default=1,
-        help="1-based source frame to start from. frame1 is frame 1.",
+        help="1-based source frame to start from. frame1 in the zip is frame 1. Output folders are renumbered from frame1.",
     )
     parser.add_argument(
         "--frame-skip",
         type=int,
         default=1,
         help="Keep every Nth source frame after --start-number. 1 keeps every frame.",
-    )
-    parser.add_argument(
-        "--skip-zip-extraction",
-        action="store_true",
-        help="Only convert pose files for existing frame folders. Skips reading the zip.",
     )
     parser.add_argument(
         "--use-colmap",
@@ -107,28 +102,24 @@ def main() -> None:
     args = parse_args()
     folder = args.path.resolve()
 
-    n_frames = args.n_frames
     frame_output_pattern = folder / "frame%d"
     image_dir_name = "input" if args.use_colmap else "images"
-    if not args.skip_zip_extraction:
-        n_frames = extract_zip(
-            folder=folder,
-            image_dirname=image_dir_name,
-            start_number=args.start_number,
-            n_frames=n_frames,
-            frame_skip=args.frame_skip,
-        )
-    elif n_frames is None:
-        n_frames = count_frame_dirs(frame_output_pattern, start_number=args.start_number)
+    n_frames = extract_zip(
+        folder=folder,
+        image_dirname=image_dir_name,
+        start_number=args.start_number,
+        n_frames=args.n_frames,
+        frame_skip=args.frame_skip,
+    )
 
-    cameras = read_cameras(folder, args.start_number, image_dir_name)
+    cameras = read_cameras(folder, 1, image_dir_name)
 
     if not args.use_colmap:
         write_video_colmap_text_model(
             output_pattern=frame_output_pattern / "sparse" / "0",
             cameras=cameras,
             n_frames=n_frames,
-            start_number=args.start_number,
+            start_number=1,
             image_extension="",
         )
     else:
@@ -136,7 +127,7 @@ def main() -> None:
             output_pattern=frame_output_pattern,
             cameras=cameras,
             n_frames=n_frames,
-            start_number=args.start_number,
+            start_number=1,
             image_extension="",
             colmap_executable=args.colmap_executable,
             use_gpu=args.colmap_use_gpu,

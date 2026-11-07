@@ -8,7 +8,7 @@ from pathlib import Path
 from nvs2colmap.colmap import cameras_from_colmap_model, run_video_colmap, run_video_colmap_refine_poses
 from nvs2colmap.write_model import write_video_colmap_text_model
 
-from .extract_videos import drop_frames_missing_views, extract_videos
+from .extract_videos import extract_videos
 from .poses_bounds import read_poses_bounds
 
 
@@ -69,11 +69,6 @@ def parse_args() -> argparse.Namespace:
         "--video-extension",
         default=".mp4",
         help="Video extension used to discover camera videos.",
-    )
-    parser.add_argument(
-        "--skip-video-extraction",
-        action="store_true",
-        help="Only convert poses_bounds.npy for existing frame folders.",
     )
     parser.add_argument(
         "--use-colmap",
@@ -142,25 +137,19 @@ def main() -> None:
     requested_frames = args.n_frames
     frame_output_pattern = folder / "frame%d"
     image_dir_name = "input" if args.use_colmap else "images"
-    if not args.skip_video_extraction:
-        n_complete = extract_videos(
-            folder=folder,
-            output_pattern=frame_output_pattern / image_dir_name,
-            cameras=cameras,
-            start_number=args.start_number,
-            n_frames=requested_frames,
-            ffmpeg_executable=args.ffmpeg_executable,
-            ffprobe_executable=args.ffprobe_executable,
-            ffmpeg_processes=args.ffmpeg_processes,
-            video_extension=args.video_extension,
-            image_extension=args.image_extension,
-            frame_skip=args.frame_skip,
-        )
-    else:
-        n_complete = drop_frames_missing_views(
-            frame_output_pattern / image_dir_name,
-            start_number=1,
-        )
+    n_complete = extract_videos(
+        folder=folder,
+        output_pattern=frame_output_pattern / image_dir_name,
+        cameras=cameras,
+        start_number=args.start_number,
+        n_frames=requested_frames,
+        ffmpeg_executable=args.ffmpeg_executable,
+        ffprobe_executable=args.ffprobe_executable,
+        ffmpeg_processes=args.ffmpeg_processes,
+        video_extension=args.video_extension,
+        image_extension=args.image_extension,
+        frame_skip=args.frame_skip,
+    )
     n_frames = n_complete if requested_frames is None else min(requested_frames, n_complete)
 
     if not args.use_colmap:

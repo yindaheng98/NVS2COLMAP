@@ -9,17 +9,6 @@ from typing import Sequence
 from .camera_meta import ParsedCameraMeta
 
 
-def count_frame_dirs(output_pattern: Path, start_number: int = 1) -> int:
-    output_pattern = str(output_pattern)
-    frame = start_number
-    while Path(output_pattern % frame).is_dir():
-        frame += 1
-    n_frames = frame - start_number
-    if n_frames == 0:
-        raise FileNotFoundError(f"No frame directories found from pattern: {output_pattern}")
-    return n_frames
-
-
 def link_file(src: Path, dst: Path) -> None:
     if not src.is_file():
         raise FileNotFoundError(f"Missing source file: {src}")

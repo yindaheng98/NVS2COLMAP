@@ -49,7 +49,7 @@ def extract_video_frames(
     frame_skip: int = 1,
 ) -> int:
     if output_start_number is None:
-        output_start_number = start_number
+        output_start_number = 1
 
     frame_count = count_video_frames(
         video_path,

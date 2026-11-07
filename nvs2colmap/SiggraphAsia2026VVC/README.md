@@ -304,8 +304,7 @@ python -m nvs2colmap.SiggraphAsia2026VVC \
   --path data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1
 ```
 
-Start at source frame `000009.jpg` and keep output frame numbering aligned
-with it:
+Start at source frame `000009.jpg`. Output folders are still `frame1`, `frame2`, ...:
 
 ```bash
 python -m nvs2colmap.SiggraphAsia2026VVC \
@@ -368,14 +367,6 @@ python -m nvs2colmap.SiggraphAsia2026VVC \
   --colmap-use-gpu 1
 ```
 
-Reuse existing linked frame images:
-
-```bash
-python -m nvs2colmap.SiggraphAsia2026VVC \
-  --path data/SiggraphAsia2026VVC/siga/compression/test/004_1_seq1 \
-  --skip-frame-linking
-```
-
 ## Important Options
 
 - `--path`: scene directory containing `images/`, `train_intri.yml`, and
@@ -383,8 +374,6 @@ python -m nvs2colmap.SiggraphAsia2026VVC \
 - `--n-frames`: number of frames to extract and write after `--frame-skip`.
   If omitted, every kept frame from `--start-number` through the last frame
   on disk is used. A value past the frames that remain writes those frames.
-  If omitted with `--skip-frame-linking`, frame directories are counted from
-  `frame%d`.
 - `--no-train-camera`: skip cameras listed in `train_intri.yml` and
   `train_extri.yml`.
 - `--no-test-camera`: skip cameras listed in `test_intri.yml` and
@@ -398,14 +387,9 @@ python -m nvs2colmap.SiggraphAsia2026VVC \
   way. Applied after `--include-cameras`. A number with no matching view is
   left out.
 - `--start-number`: 1-based position in the frames on disk, default `1`.
-  Output `frame%d` uses that same count. The first file is `frame1`.
+  The first file is source frame 1. Output folders are renumbered from `frame1`.
 - `--frame-skip`: keep every Nth source frame after `--start-number`, default
-  `1`. Output `frame%d` folders stay contiguous from `--start-number`.
-  `--skip-frame-linking` reuses the folders already on disk and ignores this.
-- `--skip-frame-linking`: keep existing frame images and masks, and skip
-  hardlinking and the distortion undistortion. A zero-distortion scene reuses
-  `frame*/images`, or `frame*/input` with `--use-colmap`. A scene with nonzero
-  distortion reuses `frame*/input` and the `images/` already written by COLMAP.
+  `1`. Output folders stay `frame1`, `frame2`, ...
 - `--use-colmap`: run the full COLMAP pipeline instead of only writing
   `sparse/0` text models.
 - `--colmap-executable`: path to the COLMAP executable. Nonzero distortion uses

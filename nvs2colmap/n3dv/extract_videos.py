@@ -7,17 +7,6 @@ from nvs2colmap.write_model import CameraModel
 from nvs2colmap.utils import extract_video_frames_parallel
 
 
-def count_frame_dirs(output_pattern: Path, start_number: int = 1) -> int:
-    output_pattern = str(output_pattern)
-    frame = start_number
-    while Path(output_pattern % frame).is_dir():
-        frame += 1
-    n_frames = frame - start_number
-    if n_frames == 0:
-        raise FileNotFoundError(f"No frame directories found from pattern: {output_pattern}")
-    return n_frames
-
-
 def drop_frames_missing_views(output_pattern: Path, start_number: int = 1) -> int:
     """Delete trailing frames whose image count differs from the first frame.
 

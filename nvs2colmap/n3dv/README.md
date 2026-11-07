@@ -333,22 +333,12 @@ python -m nvs2colmap.n3dv \
   --colmap-use-gpu 1
 ```
 
-Reuse existing extracted frame images:
-
-```bash
-python -m nvs2colmap.n3dv \
-  --path data/coffee_martini \
-  --skip-video-extraction
-```
-
 ## Important Options
 
 - `--path`: scene directory containing `poses_bounds.npy` and camera videos.
-- `--n-frames`: number of frames to extract and write. If omitted while
-  extracting videos, each video is decoded to its available frame count. For
-  best results, use videos with matching frame counts or pass `--n-frames`.
-  If omitted with `--skip-video-extraction`, frame directories are counted
-  from `frame%d`.
+- `--n-frames`: number of frames to extract and write. If omitted, each video
+  is decoded to its available frame count. For best results, use videos with
+  matching frame counts or pass `--n-frames`.
 - `--start-number`: 1-based source frame index to start decoding from, default
   `1`. Output `frame%d` folders are renumbered from `frame1`.
 - `--frame-skip`: keep every Nth source frame after `--start-number`, default
@@ -359,10 +349,6 @@ python -m nvs2colmap.n3dv \
   COLMAP files, default `.png`.
 - `--video-extension`: video file extension to read, default `.mp4`. The dot is
   optional and matching is case-insensitive.
-- `--skip-video-extraction`: keep existing extracted frame images and skip video
-  decoding. In the default mode this reuses `frame*/images`; with
-  `--use-colmap` it reuses `frame*/input`. If `--n-frames` is omitted, the
-  command counts existing `frame%d` directories.
 - `--use-colmap`: run the full COLMAP pipeline instead of only writing
   `sparse/0` text models.
 - `--colmap-executable`: path to the COLMAP executable used with

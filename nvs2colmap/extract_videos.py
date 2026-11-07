@@ -70,7 +70,7 @@ def parse_args() -> argparse.Namespace:
         "--start-number",
         type=int,
         default=1,
-        help="1-based source frame to start extracting from; output frame folders use the same starting number.",
+        help="1-based source frame to start extracting from. Output folders are renumbered from frame1.",
     )
     parser.add_argument(
         "--ffmpeg",

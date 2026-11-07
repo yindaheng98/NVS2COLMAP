@@ -10,7 +10,7 @@ from nvs2colmap.utils import select_frame_indices
 from nvs2colmap.write_model import write_video_colmap_text_model
 
 from .cameras import parse_camera_numbers, read_camera_meta
-from .link_frames import count_frame_dirs, link_frames
+from .link_frames import link_frames
 from .points import link_point_clouds
 from .undistort import undistort_frames
 
@@ -41,7 +41,7 @@ def parse_args() -> argparse.Namespace:
         "--start-number",
         type=int,
         default=1,
-        help="1-based position in the frames on disk. The first file is frame1.",
+        help="1-based position in the frames on disk. Output folders are renumbered from frame1.",
     )
     parser.add_argument(
         "--frame-skip",
@@ -73,11 +73,6 @@ def parse_args() -> argparse.Namespace:
             "Python expression of camera numbers to leave out, in the same form as "
             "--include-cameras. Use this to drop close-up views. Applied after --include-cameras."
         ),
-    )
-    parser.add_argument(
-        "--skip-frame-linking",
-        action="store_true",
-        help="Only convert camera YAML for existing frame folders.",
     )
     parser.add_argument(
         "--use-colmap",
@@ -158,48 +153,41 @@ def main() -> None:
     )
     if args.include_cameras or args.exclude_cameras:
         print("Cameras: " + " ".join(camera.view for camera in cameras))
-    start_number = args.start_number
-    n_frames = args.n_frames
-    if args.skip_frame_linking and n_frames is None:
-        n_frames = count_frame_dirs(folder / "frame%d", start_number=start_number)
-    frame_skip = 1 if args.skip_frame_linking else args.frame_skip
     frame_indices = select_frame_indices(
-        available_frames, start_number, n_frames, frame_skip
+        available_frames, args.start_number, args.n_frames, args.frame_skip
     )
-    output_numbers = list(range(start_number, start_number + len(frame_indices)))
+    output_numbers = list(range(1, 1 + len(frame_indices)))
 
     frame_output_pattern = folder / "frame%d"
     distorted = any(camera.dist is not None for camera in cameras)
     image_dir_name = "input" if args.use_colmap or distorted else "images"
     mask_dir_name = "input_mask" if args.use_colmap or distorted else "image_masks"
-    if not args.skip_frame_linking:
-        link_frames(
-            folder=folder,
-            frame_pattern=frame_output_pattern,
-            cameras=cameras,
-            frame_indices=frame_indices,
-            output_numbers=output_numbers,
-            image_dirname=image_dir_name,
-            mask_dirname=mask_dir_name,
-        )
+    link_frames(
+        folder=folder,
+        frame_pattern=frame_output_pattern,
+        cameras=cameras,
+        frame_indices=frame_indices,
+        output_numbers=output_numbers,
+        image_dirname=image_dir_name,
+        mask_dirname=mask_dir_name,
+    )
 
     colmap_cameras = [camera.camera for camera in cameras]
     n_frames = len(frame_indices)
     if not args.use_colmap:
         if distorted:
-            if not args.skip_frame_linking:
-                undistort_frames(
-                    frame_pattern=frame_output_pattern,
-                    cameras=cameras,
-                    output_numbers=output_numbers,
-                    colmap_executable=args.colmap_executable,
-                )
+            undistort_frames(
+                frame_pattern=frame_output_pattern,
+                cameras=cameras,
+                output_numbers=output_numbers,
+                colmap_executable=args.colmap_executable,
+            )
         else:
             write_video_colmap_text_model(
                 output_pattern=frame_output_pattern / "sparse" / "0",
                 cameras=colmap_cameras,
                 n_frames=n_frames,
-                start_number=start_number,
+                start_number=1,
                 image_extension="",
             )
         link_point_clouds(
@@ -212,7 +200,7 @@ def main() -> None:
             output_pattern=frame_output_pattern,
             cameras=colmap_cameras,
             n_frames=n_frames,
-            start_number=start_number,
+            start_number=1,
             image_extension="",
             colmap_executable=args.colmap_executable,
             use_gpu=args.colmap_use_gpu,

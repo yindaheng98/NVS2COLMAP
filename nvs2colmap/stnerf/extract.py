@@ -10,17 +10,6 @@ from pathlib import Path
 from nvs2colmap.utils import select_frame_indices
 
 
-def count_frame_dirs(output_pattern: Path, start_number: int = 1) -> int:
-    output_pattern = str(output_pattern)
-    frame = start_number
-    while Path(output_pattern % frame).is_dir():
-        frame += 1
-    n_frames = frame - start_number
-    if n_frames == 0:
-        raise FileNotFoundError(f"No frame directories found from pattern: {output_pattern}")
-    return n_frames
-
-
 def find_zip(folder: Path) -> Path:
     zips = sorted(path for path in Path(folder).iterdir() if path.is_file() and path.suffix.lower() == ".zip")
     if len(zips) != 1:
@@ -80,7 +69,7 @@ def extract_zip(
             raise FileNotFoundError(f"No frame images in {archive_path}")
         # Frame folders are frame1, frame2, ... so the 1-based position is the frame id.
         selected = select_frame_indices(range(1, max(frame_ids) + 1), start_number, n_frames, frame_skip)
-        output_numbers = range(start_number, start_number + len(selected))
+        output_numbers = range(1, 1 + len(selected))
         for frame, output_number in zip(selected, output_numbers):
             members = {filename: member for (frame_id, filename), member in images.items() if frame_id == frame}
             if not members:

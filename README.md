@@ -91,7 +91,7 @@ python -m nvs2colmap.n3dv \
   --n-frames 300
 ```
 
-Start from source frame 10 and keep output frame numbering aligned with it:
+Start from source frame 10. Output folders are still `frame1`, `frame2`, ...:
 
 ```bash
 python -m nvs2colmap.n3dv \
@@ -176,8 +176,9 @@ hardlinked into `frame*/image_masks` (`cam01.jpg` pairs with `cam01.jpg.png`).
 for [InstantSplat](https://github.com/yindaheng98/InstantSplat). That switch
 does not write `init_pt_cld.npz` into `sparse/0/points3D.ply`; the
 reconstructed points stay in `distorted/sparse/0` and the undistorted
-`sparse/`. `--start-number` uses the same 1-based output numbering; source
-file `000000.jpg` is frame `1`.
+`sparse/`. `--start-number` selects the source frame and does not change the
+output names. Source file `000000.jpg` is source frame 1, and the first
+extracted folder is `frame1`.
 
 For Siggraph Asia 2026 VVC scenes, images from `train_intri.yml` /
 `train_extri.yml` and, when present, `test_intri.yml` / `test_extri.yml` are
@@ -207,5 +208,6 @@ command extracts images to `frame*/images` and writes `frame*/sparse/0` text
 models from `pose/K.txt` and `pose/RT_c2w.txt`. `--use-colmap` extracts images
 to `frame*/input`, then undistorts them to `images/` for
 [InstantSplat](https://github.com/yindaheng98/InstantSplat). A scene without
-`pose/` raises an error. `--start-number` uses the same 1-based numbering;
-source directory `frame1` is frame `1`.
+`pose/` raises an error. `--start-number` selects the source frame and does
+not change the output names. Source directory `frame1` is source frame 1, and
+the first extracted folder is `frame1`.
