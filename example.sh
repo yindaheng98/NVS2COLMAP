@@ -2,7 +2,8 @@
 set -e
 ./nvs2colmap/n3dv/reset_n3dv.sh --ffmpeg data/ffmpeg --ffprobe data/ffprobe --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap"
 ./nvs2colmap/dynamic3dgs/reset_dynamic3dgs.sh --use-colmap --refine-init-pose --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap"
-./nvs2colmap/n3dv/reset_robo360.sh --ffmpeg data/ffmpeg --ffprobe data/ffprobe --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap"
+./nvs2colmap/n3dv/reset_Robo360batch1.sh --ffmpeg data/ffmpeg --ffprobe data/ffprobe --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" --n-frames 300
+./nvs2colmap/n3dv/reset_Robo360batch2.sh --ffmpeg data/ffmpeg --ffprobe data/ffprobe --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" --frame-skip 6 --n-frames 300
 ./nvs2colmap/SiggraphAsia2026VVC/reset_SiggraphAsia2026VVC.sh --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap"
 
 reset_streamrf() {

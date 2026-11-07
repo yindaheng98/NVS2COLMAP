@@ -351,6 +351,8 @@ python -m nvs2colmap.n3dv \
   from `frame%d`.
 - `--start-number`: 1-based source frame index to start decoding from, default
   `1`. Output `frame%d` folders are renumbered from `frame1`.
+- `--frame-skip`: keep every Nth source frame after `--start-number`, default
+  `1`. Output folders stay contiguous from `frame1`.
 - `--ffmpeg`: path to the `ffmpeg` executable.
 - `--ffprobe`: path to the `ffprobe` executable.
 - `--image-extension`: image extension written by ffmpeg and referenced by

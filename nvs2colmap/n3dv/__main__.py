@@ -37,6 +37,12 @@ def parse_args() -> argparse.Namespace:
         help="1-based source frame to start extracting from. Output folders are renumbered from frame1.",
     )
     parser.add_argument(
+        "--frame-skip",
+        type=int,
+        default=1,
+        help="Keep every Nth source frame after --start-number. 1 keeps every frame.",
+    )
+    parser.add_argument(
         "--ffmpeg",
         dest="ffmpeg_executable",
         default="ffmpeg",
@@ -114,6 +120,8 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     args = parser.parse_args()
+    if args.frame_skip < 1:
+        parser.error("--frame-skip must be at least 1.")
     if args.refine_init_pose and not args.use_colmap:
         parser.error("--refine-init-pose requires --use-colmap.")
     if args.reestimate_init_pose and not args.use_colmap:
@@ -146,6 +154,7 @@ def main() -> None:
             ffmpeg_processes=args.ffmpeg_processes,
             video_extension=args.video_extension,
             image_extension=args.image_extension,
+            frame_skip=args.frame_skip,
         )
     elif n_frames is None:
         n_frames = count_frame_dirs(frame_output_pattern, start_number=1)

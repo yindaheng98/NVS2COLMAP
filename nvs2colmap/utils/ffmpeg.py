@@ -10,8 +10,10 @@ def count_video_frames(
     start_number: int = 1,
     n_frames: int | None = None,
     ffprobe_executable: str = "ffprobe",
+    frame_skip: int = 1,
 ) -> int:
     assert start_number >= 1, f"start_number must be >= 1, got {start_number}."
+    assert frame_skip >= 1, f"frame_skip must be >= 1, got {frame_skip}."
 
     cmd = [
         ffprobe_executable,
@@ -30,12 +32,13 @@ def count_video_frames(
     video_frame_count = int(output)
     available_frame_count = video_frame_count - start_number + 1
     assert available_frame_count > 0, f"start_number {start_number} is outside {video_frame_count} frames in {video_path}."
+    kept_frame_count = (available_frame_count + frame_skip - 1) // frame_skip
 
     if n_frames is None:
-        return available_frame_count
+        return kept_frame_count
 
     assert n_frames >= 1, f"n_frames must be >= 1, got {n_frames}."
-    return min(n_frames, available_frame_count)
+    return min(n_frames, kept_frame_count)
 
 
 def extract_video_frames(
@@ -43,6 +46,7 @@ def extract_video_frames(
     start_number: int = 1, n_frames: int | None = None,
     ffmpeg_executable: str = "ffmpeg", ffprobe_executable: str = "ffprobe",
     output_start_number: int | None = None,
+    frame_skip: int = 1,
 ) -> int:
     if output_start_number is None:
         output_start_number = start_number
@@ -52,10 +56,16 @@ def extract_video_frames(
         start_number=start_number,
         n_frames=n_frames,
         ffprobe_executable=ffprobe_executable,
+        frame_skip=frame_skip,
     )
 
     for frame in range(output_start_number, output_start_number + frame_count):
         os.makedirs(os.path.dirname(output_pattern % frame), exist_ok=True)
+
+    filters = [f"trim=start_frame={start_number - 1}"]
+    if frame_skip > 1:
+        filters.append(f"select='not(mod(n\\,{frame_skip}))'")
+        filters.append("setpts=N/FRAME_RATE/TB")
 
     cmd = [
         ffmpeg_executable,
@@ -65,7 +75,7 @@ def extract_video_frames(
         "-i",
         str(video_path),
         "-vf",
-        f"trim=start_frame={start_number - 1}",
+        ",".join(filters),
         "-frames:v", str(frame_count),
         "-start_number", str(output_start_number),
         str(output_pattern), "-y",
@@ -87,6 +97,7 @@ def extract_video_frames_parallel(
     ffprobe_executable: str = "ffprobe",
     process_count: int = 1,
     output_start_number: int | None = None,
+    frame_skip: int = 1,
 ) -> list[int]:
     """Extract frames from multiple videos using multiple ffmpeg processes."""
     assert process_count >= 1, f"process_count must be >= 1, got {process_count}."
@@ -100,6 +111,7 @@ def extract_video_frames_parallel(
             ffmpeg_executable,
             ffprobe_executable,
             output_start_number,
+            frame_skip,
         )
         for video_path, output_pattern in jobs
     ]

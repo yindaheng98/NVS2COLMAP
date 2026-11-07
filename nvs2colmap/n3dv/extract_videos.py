@@ -28,6 +28,7 @@ def extract_videos(
     ffmpeg_processes: int = 1,
     video_extension: str = ".mp4",
     image_extension: str = ".png",
+    frame_skip: int = 1,
 ) -> int:
     if not video_extension.startswith("."):
         video_extension = f".{video_extension}"
@@ -50,5 +51,6 @@ def extract_videos(
         ffprobe_executable=ffprobe_executable,
         process_count=ffmpeg_processes,
         output_start_number=1,
+        frame_skip=frame_skip,
     )
     return max(extracted_frame_counts)
