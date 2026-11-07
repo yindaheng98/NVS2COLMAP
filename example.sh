@@ -13,16 +13,16 @@ BASESKIP=1
     --frame-skip $((2 * BASESKIP))
 
 ./nvs2colmap/n3dv/reset_n3dv.sh \
-    --ffmpeg data/ffmpeg --ffprobe data/ffprobe \
+    --ffmpeg data/ffmpeg --ffprobe data/ffprobe --ffmpeg-processes 16 \
     --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
     --frame-skip $((1 * BASESKIP))
 ./nvs2colmap/n3dv/reset_Robo360batch1.sh \
-    --ffmpeg data/ffmpeg --ffprobe data/ffprobe \
+    --ffmpeg data/ffmpeg --ffprobe data/ffprobe --ffmpeg-processes 16 \
     --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
     --frame-skip $((1 * BASESKIP)) --n-frames $((300 / BASESKIP))
 ./nvs2colmap/n3dv/reset_Robo360batch2.sh \
     --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
-    --ffmpeg data/ffmpeg --ffprobe data/ffprobe  \
+    --ffmpeg data/ffmpeg --ffprobe data/ffprobe --ffmpeg-processes 16 \
     --frame-skip $((6 * BASESKIP)) --n-frames $((300 / BASESKIP))
 reset_streamrf() {
     rm -rf data/discussion data/trimming data/stepin data/vrheadset
@@ -38,6 +38,6 @@ reset_streamrf() {
     python -m nvs2colmap.n3dv --path data/vrheadset --cameras $CAMERAS_DIR/vrheadset/frame1/sparse/0 "$@"
 }
 reset_streamrf \
-    --ffmpeg data/ffmpeg --ffprobe data/ffprobe \
+    --ffmpeg data/ffmpeg --ffprobe data/ffprobe --ffmpeg-processes 16 \
     --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
     --frame-skip $((1 * BASESKIP))
