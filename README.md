@@ -162,7 +162,7 @@ python -m nvs2colmap.blender \
 For Neural 3D Video scenes, decoded frames are written to `frame*/images` by
 default, and the command also writes `frame*/sparse/0` text models. With
 `--use-colmap`, decoded frames are written to `frame*/input`, and each frame
-gets `distorted/sparse/0` plus undistorted `images/`, `sparse/`, and `stereo/`
+gets `distorted/sparse/0` plus undistorted `images/`, `sparse/`, `sparse/0`, and `stereo/`
 for [InstantSplat](https://github.com/yindaheng98/InstantSplat). When
 `--start-number N` is provided, decoding starts from source video frame `N`.
 Extracted frames are written starting at `frame1`.
@@ -176,7 +176,7 @@ hardlinked into `frame*/image_masks` (`cam01.jpg` pairs with `cam01.jpg.png`).
 for [InstantSplat](https://github.com/yindaheng98/InstantSplat). That switch
 does not write `init_pt_cld.npz` into `sparse/0/points3D.ply`; the
 reconstructed points stay in `distorted/sparse/0` and the undistorted
-`sparse/`. `--start-number` selects the source frame and does not change the
+`sparse/` and `sparse/0`. `--start-number` selects the source frame and does not change the
 output names. Source file `000000.jpg` is source frame 1, and the first
 extracted folder is `frame1`.
 

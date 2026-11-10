@@ -17,6 +17,7 @@ from nvs2colmap.utils.colmap import (
     mapper,
     mask_undistorter,
     model_converter_txt,
+    model_writer_txt,
     point_triangulator,
     pose_prior_mapper,
     read_db,
@@ -128,6 +129,8 @@ def run_colmap(
 
     if image_undistorter(str(folder), colmap_executable=colmap_executable) != 0:
         raise RuntimeError("Undistortion failed")
+    if model_writer_txt(str(folder), colmap_executable=colmap_executable) != 0:
+        raise RuntimeError("Model conversion failed")
     image_names = [f"{camera.name}{image_extension}" for camera in cameras]
     if mask_undistorter(folder, image_names, colmap_executable=colmap_executable) != 0:
         raise RuntimeError("Mask undistortion failed")
@@ -262,6 +265,8 @@ def copy_colmap(
         raise RuntimeError("Mapping failed")
     if image_undistorter(str(folder), colmap_executable=colmap_executable) != 0:
         raise RuntimeError("Undistortion failed")
+    if model_writer_txt(str(folder), colmap_executable=colmap_executable) != 0:
+        raise RuntimeError("Model conversion failed")
     if mask_undistorter(folder, image_names, colmap_executable=colmap_executable) != 0:
         raise RuntimeError("Mask undistortion failed")
 

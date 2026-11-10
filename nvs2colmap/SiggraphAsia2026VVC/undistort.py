@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 from typing import Sequence
 
 import numpy as np
 
-from nvs2colmap.utils.colmap import execute, image_undistorter, mask_undistorter
+from nvs2colmap.utils.colmap import image_undistorter, mask_undistorter, model_writer_txt
 
 from .cameras import ParsedCamera
 
@@ -43,22 +42,7 @@ def undistort_frames(
         (model_dir / "points3D.txt").write_text("")
         if image_undistorter(str(frame_dir), colmap_executable=colmap_executable) != 0:
             raise RuntimeError(f"Undistortion failed for {frame_dir}")
+        if model_writer_txt(str(frame_dir), colmap_executable=colmap_executable) != 0:
+            raise RuntimeError(f"Could not convert the undistorted model in {frame_dir}")
         if mask_undistorter(frame_dir, image_names, colmap_executable=colmap_executable) != 0:
             raise RuntimeError(f"Mask undistortion failed for {frame_dir}")
-        staging = frame_dir / ".sparse_txt"
-        shutil.rmtree(staging, ignore_errors=True)
-        staging.mkdir()
-        if execute([
-            colmap_executable, "model_converter",
-            "--input_path", str(frame_dir / "sparse"),
-            "--output_path", str(staging),
-            "--output_type", "TXT",
-        ]) != 0:
-            raise RuntimeError(f"Could not convert the undistorted model in {frame_dir}")
-        published = frame_dir / "sparse" / "0"
-        if published.exists():
-            shutil.rmtree(published)
-        published.mkdir(parents=True)
-        for name in ("cameras.txt", "images.txt", "points3D.txt"):
-            shutil.move(staging / name, published / name)
-        shutil.rmtree(staging)

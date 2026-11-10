@@ -257,7 +257,8 @@ coffee_martini/
 
 With `--use-colmap`, each frame directory instead contains the COLMAP workspace
 after feature extraction, matching, triangulation, mapping, and undistortion.
-`image_undistorter` writes `images/`, `sparse/`, and `stereo/`.
+`image_undistorter` writes `images/`, `sparse/`, and `stereo/`. The same
+undistorted model is also written as text to `sparse/0`.
 
 ```text
 coffee_martini/
@@ -274,6 +275,10 @@ coffee_martini/
       cameras.bin
       images.bin
       points3D.bin
+      0/
+        cameras.txt
+        images.txt
+        points3D.txt
     stereo/
 ```
 

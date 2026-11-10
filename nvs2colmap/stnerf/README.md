@@ -152,7 +152,7 @@ clouds, and background meshes inside the zip.
 
 With `--use-colmap`, images are extracted to `frame*/input`. COLMAP then
 writes undistorted images to `images/`, plus `distorted/sparse/0`, `sparse/`,
-and `stereo/`.
+`sparse/0`, and `stereo/`.
 
 ```text
 walking/
@@ -166,6 +166,7 @@ walking/
       sparse/0/
     images/
     sparse/
+      0/
     stereo/
 ```
 

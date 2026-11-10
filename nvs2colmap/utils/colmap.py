@@ -223,6 +223,19 @@ def model_converter_bin(folder, colmap_executable="colmap"):
     return execute(cmd)
 
 
+def model_writer_txt(folder, colmap_executable="colmap"):
+    sparse_path = os.path.join(folder, "sparse")
+    output_path = os.path.join(sparse_path, "0")
+    os.makedirs(output_path, exist_ok=True)
+    cmd = [
+        colmap_executable, "model_converter",
+        "--input_path", sparse_path,
+        "--output_path", output_path,
+        "--output_type=TXT",
+    ]
+    return execute(cmd)
+
+
 def link_identical_files(source_dir, output_dir) -> None:
     """Replace output copies that match their source files with hardlinks."""
     source_dir = Path(source_dir)
