@@ -5,6 +5,10 @@ BASESKIP=1
     --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" --refine-init-pose  \
     --frame-skip $((1 * BASESKIP))
 
+./nvs2colmap/stnerf/reset_stnerf.sh \
+    --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
+    --frame-skip $((1 * BASESKIP))
+
 ./nvs2colmap/SiggraphAsia2026VVC/reset_SiggraphAsia2026VVC_selfcap.sh \
     --use-colmap --colmap-executable "${CONDA_EXE%/bin/conda}/bin/colmap" \
     --frame-skip $((3 * BASESKIP))
